@@ -47,10 +47,7 @@ end
 
 -- Detect Kil&amp;apos;jaeden&amp;apos;s Cunning
 local PQ_KC = PQ_KC
-if IsPlayerSpell(PQ_KC) then
-	if PQR_SpellAvailable(PQ_KC) then
-		KilJaeden = true
-	else KilJaeden = false end
+if IsPlayerSpell(PQ_KC) then KilJaeden = true
 else KilJaeden = false end
 
 -- Variables
@@ -66,21 +63,30 @@ if UnitIsDeadOrGhost(&amp;quot;player&amp;quot;) then return true end
 -- Prevent Soul Fire without Molten Core
 local PQ_MCore = PQ_MCore
 local PQ_SoulFire = PQ_SoulFire
-if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore)
+if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) and GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
 	and UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_SoulFire) then
 	SpellStopCasting()
 end
 
+-- If we switch from AoE to single target, cancel Hellfire.
+local isAOE = strmatch(strupper(PQR_RotationName), &amp;quot;AOE&amp;quot;)
+if not isAOE then
+	local PQ_Hellfire = PQ_Hellfire
+	if UnitChannelInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Hellfire) then
+		RunMacroText(&amp;quot;/stopcasting&amp;quot;)
+	end
+end
+
 -- At this point, everything should have loaded perfectly!
 if not PQ_DemoWarlockLoaded then
-	local Hysteria = CreateFrame(&amp;quot;Frame&amp;quot;)
-	Hysteria:RegisterEvent(&amp;quot;COMBAT_LOG_EVENT_UNFILTERED&amp;quot;)
-	Hysteria:SetScript(&amp;quot;OnEvent&amp;quot;, HysteriaFrame_OnEvent)
-	Hysteria:Show()
+	local MCFrame = CreateFrame(&amp;quot;Frame&amp;quot;)
+	MCFrame:RegisterEvent(&amp;quot;COMBAT_LOG_EVENT_UNFILTERED&amp;quot;)
+	MCFrame:SetScript(&amp;quot;OnEvent&amp;quot;, MCFrame_OnEvent)
+	MCFrame:Show()
 	
 	Trinket = 0
 	PQ_DemoWarlockLoaded = true
-	PQR_WriteToChat(&amp;quot;|cff91e782Nova Demonology Warlock data is |cff82cee7Loaded!|cffffffff&amp;quot;)
+	PQR_WriteToChat(&amp;quot;|cff91e782Hysteria Demonology Warlock data is |cff82cee7Loaded!|cffffffff&amp;quot;)
 end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Pet Management</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Felguard = PQ_Felguard
 local PQ_Sacrifice = PQ_Sacrifice
 
@@ -136,15 +142,10 @@ if not select(2,GetSpellAutocast(115625)) then
 	EnableSpellAutocast(GetSpellInfo(115625))
 end
 
-if IsInInstance() and (IsInGroup() or IsInRaid()) then
-	-- Disable Threatening Presence when we&amp;apos;re in a instance group/raid
+-- Disable Threatening Presence when we&amp;apos;re in a instance group/raid
+if IsInGroup() or IsInRaid() then
 	if select(2,GetSpellAutocast(134477)) then
 		DisableSpellAutocast(GetSpellInfo(134477))
-	end
-else
-	-- Enable Threatening Presence out of instances
-	if not select(2,GetSpellAutocast(134477)) then
-		EnableSpellAutocast(GetSpellInfo(134477))
 	end
 end
 
@@ -241,7 +242,7 @@ if PQR_SpellAvailable(PQ_Shatter)
 	CastSpellByName(GetSpellInfo(PQ_Shatter),&amp;quot;player&amp;quot;)
 	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Automatic Buffing</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_DI = PQ_DI
-local Nova_Spells = Nova_Spell
+local Hysteria_Spells = Hysteria_Spell
 local PQ_AuraInfo = PQ_AuraInfo
 
 -- Determine our Group setting.
@@ -253,7 +254,7 @@ if GetNumGroupMembers() &amp;gt; 0 then
 		local member = group..i
 		
 		-- Do we know Dark Intent?
-		if Nova_Spells[PQ_DI].known then
+		if Hysteria_Spells[PQ_DI].known then
 			-- Check for Spellpower Multiplier buffs
 			if not PQ_AuraInfo(5,member) then
 				-- Cast when in range
@@ -268,7 +269,7 @@ if GetNumGroupMembers() &amp;gt; 0 then
 	end
 else
 	-- Do we know Dark Intent?
-	if Nova_Spells[PQ_DI].known then
+	if Hysteria_Spells[PQ_DI].known then
 		-- Check for Spellpower Multiplier buffs
 		if not PQ_AuraInfo(5,&amp;quot;player&amp;quot;) then
 			CastSpellByName(GetSpellInfo(PQ_DI),&amp;quot;player&amp;quot;) return true
@@ -300,7 +301,7 @@ for i=1,#PQ_Lifeblood do
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Pet] Grimoire of Service</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local SCD = SCD
 local PQ_Service = PQ_Service
-local Nova_Spells = Nova_Spell
+local Hysteria_Spells = Hysteria_Spell
 local SpecialUnit = SpecialUnit
 
 if not PQI_MentallyDemo_AutoGrimoire_enable then return false end
@@ -417,7 +418,9 @@ local TargetValidation = TargetValidation
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
 -- Cancel on Movement
-if PQR_IsMoving(0.3) then return false end
+if not KilJaeden then
+	if PQR_IsMoving(0.3) then return false end
+end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_ShadowBolt)
     and PQR_SpellAvailable(PQ_ShadowBolt)
@@ -434,12 +437,8 @@ local TargetValidation = TargetValidation
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
 -- So is movement
-if PQR_IsMoving(0.3) then return false end
-
--- Stop casting Soul Fire if we don&amp;apos;t have a buff
-if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore)
-	and UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_SoulFire) then
-	SpellStopCasting()
+if not KilJaeden then
+	if PQR_IsMoving(0.3) then return false end
 end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) and PQR_SpellAvailable(PQ_SoulFire) then
@@ -562,6 +561,10 @@ end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False
 
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
+if not KilJaeden then
+	if PQR_IsMoving(0.3) then return false end
+end
+
 if IsPlayerSpell(PQ_HL)
 	and UnitExists(&amp;quot;target&amp;quot;)
 	and PQR_SpellAvailable(PQ_HL)
@@ -628,8 +631,11 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 if isAOE and fury &amp;lt;= 250 then CancelShapeshiftForm() end
 
 if not isAOE then
+	-- Soul Fire and Heroism..
+	if PQ_HasHero() and fury &amp;lt;= 160 then CancelShapeshiftForm() end
+	
 	-- Don&amp;apos;t leave Meta if we have strong buffs active still.
-	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or PQ_HasHero() then return false end
+	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) then return false end
 	
 	-- Normal Fury cancel
 	if fury &amp;lt;= 750 then CancelShapeshiftForm() end
@@ -758,14 +764,7 @@ if IsPlayerSpell(PQ_AV)
 	and PQR_SpellAvailable(PQ_AV)
 	and not GetCurrentKeyBoardFocus()
 	and PQI:IsHotkeys(PQI_MentallyDemo_Level90Talent_key)
-then CastSpellByName(GetSpellInfo(PQ_AV),&amp;quot;target&amp;quot;) return true end
-
--- Kil&amp;apos;jaeden&amp;apos;s Cunning
-if IsPlayerSpell(PQ_KC)
-	and PQR_SpellAvailable(PQ_KC)
-	and not GetCurrentKeyBoardFocus()
-	and PQI:IsHotkeys(PQI_MentallyDemo_Level90Talent_key)
-then CastSpellByName(GetSpellInfo(PQ_KC),&amp;quot;player&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_Meta = PQ_Meta
+then CastSpellByName(GetSpellInfo(PQ_AV),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_Meta = PQ_Meta
 local PQ_Doom = PQ_Doom
 local PQ_GulDan = PQ_GulDan
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
@@ -815,13 +814,25 @@ then
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_HasHero = PQ_HasHero
 local PQ_SoulFire = PQ_SoulFire
+local SpecialUnit = SpecialUnit
+local Hysteria_UnitInfo = Hysteria_UnitInfo
 local TargetValidation = TargetValidation
 
 -- Human Form is bad
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 
 -- So is movement
-if PQR_IsMoving(0.3) then return false end
+if not KilJaeden then
+	if PQR_IsMoving(0.3) then return false end
+end
+
+if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
+	and PQR_SpellAvailable(PQ_SoulFire)
+	and Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 25 and SpecialUnit() then
+		SpellCancelQueuedSpell()
+		CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+		return true
+end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
 	and PQR_SpellAvailable(PQ_SoulFire)
@@ -879,6 +890,10 @@ then
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Harvest Life</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_HL = PQ_HL
 
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
+
+if not KilJaeden then
+	if PQR_IsMoving(0.3) then return false end
+end
 
 if IsPlayerSpell(PQ_HL)
 	and UnitExists(&amp;quot;target&amp;quot;)

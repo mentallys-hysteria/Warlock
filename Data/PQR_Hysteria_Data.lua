@@ -22,8 +22,7 @@ buffs = {
 }
 
 -- Trinket Proc list
--- 5.2 -- buffList = {104423,128985,125487,96230,105702,104993,26297,33702,126577,2825,32182,80353,90355,126659,126478,136082,126605,126476,136089,138898,139133,138786,138703,138963}
-buffList = {104423,128985,125487,96230,105702,104993,26297,33702,126577,2825,32182,80353,90355,126659,126478,136082,126605,126476,136089}
+buffList = {104423,128985,125487,96230,105702,104993,26297,33702,126577,2825,32182,80353,90355,126659,126478,136082,126605,126476,136089,138898,139133,138786,138703,138963}
 
 -- Complete boss unit table (Dungeons/Heroics/Raids)
 PQ_BossUnits = {
@@ -502,7 +501,7 @@ if select(2, UnitClass("player")) == "DRUID" then
 	PQ_Moonkin2			= 1020560	-- Incarnation: Chosen of Elune
 	
 	-- Spell Table
-	Nova_Spell = {
+	Hysteria_Spell = {
 		[PQ_InsectSwarm]	= {check = true, known = IsPlayerSpell(PQ_InsectSwarm)},
 		[PQ_Moonfire]		= {check = true, known = IsPlayerSpell(PQ_Moonfire)},
 		[PQ_Starsurge]		= {check = true, known = IsPlayerSpell(PQ_Starsurge)},
@@ -588,7 +587,7 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 	PQ_Ward			= 1463		-- Incanter's Ward
 	
 	-- Spell Table
-	Nova_Spell = {
+	Hysteria_Spell = {
 		[PQ_GI]			= {check = true, known = IsPlayerSpell(PQ_GI)},
 		[PQ_IW]			= {check = true, known = IsPlayerSpell(PQ_IW)},
 		[PQ_AT]			= {check = true, known = IsPlayerSpell(PQ_AT)},
@@ -670,7 +669,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_DStar	= 122121		-- Dark Star
 	
 	-- Spell Table
-	Nova_Spell = {
+	Hysteria_Spell = {
 		-- Shadow
 		[PQ_DP]			= {check = true, known = IsPlayerSpell(PQ_DP)},
 		[PQ_MB]			= {check = true, known = IsPlayerSpell(PQ_MB)},
@@ -866,7 +865,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_Service		= 108501	-- Grimoire of Service
 	PQ_Sacrifice	= 108503	-- Grimoire of Sacrifice
 	PQ_AV			= 108505	-- Archimonde's Vengeance
-	PQ_KC			= 119049	-- Kil'jaeden's Cunning
+	PQ_KC			= 137587	-- Kil'jaeden's Cunning
 	PQ_MF			= 108508	-- Mannoroth's Fury
 	
 	-- Pets
@@ -883,7 +882,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_GFelhunter	= 111897	-- Grimoire: Felhunter
 	PQ_GFelguard	= 111898	-- Grimoire: Felguard
 	
-	Nova_Spell = {
+	Hysteria_Spell = {
 		[PQ_AG]			= {check = true, known = IsPlayerSpell(PQ_AG)},
 		[PQ_UA]			= {check = true, known = IsPlayerSpell(PQ_UA)},
 		[PQ_MG]			= {check = true, known = IsPlayerSpell(PQ_MG)},
