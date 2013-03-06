@@ -747,7 +747,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_PI		= 10060			-- Power Infusion
 	PQ_FDCL		= 109186		-- From Darkness, Comes Light
 	PQ_Solace	= 129250		-- Power Word: Solace
-	PQ_SWI		= 129250		-- Power Word: Insanity
+	PQ_SWI		= 139139		-- Shadow Word: Insanity
 	PQ_MBen		= 123040		-- Mindbender
 	PQ_Halo		= 120517		-- Halo
 	PQ_DarkHalo	= 120644		-- Dark Halo
