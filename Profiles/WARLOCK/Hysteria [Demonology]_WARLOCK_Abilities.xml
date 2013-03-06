@@ -189,9 +189,11 @@ if not PQI_MentallyDemo_AutoRacials_enable then return false end
 if IsPlayerSpell(26297) and not SCD then
 	if not PQ_HasHero() and PQR_SpellAvailable(26297) then
 		if not PQI_MentallyDemo_BossCooldown_enable then
-			SpellCancelQueuedSpell()
-			CastSpellByName(GetSpellInfo(26297),&amp;quot;player&amp;quot;)
-			return true
+			if UnitExists(&amp;quot;target&amp;quot;) and UnitAffectingCombat(&amp;quot;player&amp;quot;) then
+				SpellCancelQueuedSpell()
+				CastSpellByName(GetSpellInfo(26297),&amp;quot;player&amp;quot;)
+				return true
+			end
 		else
 			if SpecialUnit() then
 				SpellCancelQueuedSpell()
@@ -204,7 +206,8 @@ end
 
 -- Blood Elf: Arcane Torrent
 if IsPlayerSpell(28730) and not SCD then
-	if PQR_SpellAvailable(28730) and select(3,Hysteria_UnitInfo(&amp;quot;player&amp;quot;)) &amp;lt; 94 then
+	if PQR_SpellAvailable(28730) and select(3,Hysteria_UnitInfo(&amp;quot;player&amp;quot;)) &amp;lt; 94
+	and UnitExists(&amp;quot;target&amp;quot;) and UnitAffectingCombat(&amp;quot;player&amp;quot;) then
 		SpellCancelQueuedSpell()
 		CastSpellByName(GetSpellInfo(28730),&amp;quot;player&amp;quot;)
 		return true
@@ -215,9 +218,11 @@ end
 if IsPlayerSpell(33702) and not SCD then
 	if PQR_SpellAvailable(33702) then
 		if not PQI_MentallyDemo_BossCooldown_enable then
-			SpellCancelQueuedSpell()
-			CastSpellByName(GetSpellInfo(33702),&amp;quot;player&amp;quot;)
-			return true
+			if UnitExists(&amp;quot;target&amp;quot;) and UnitAffectingCombat(&amp;quot;player&amp;quot;) then
+				SpellCancelQueuedSpell()
+				CastSpellByName(GetSpellInfo(33702),&amp;quot;player&amp;quot;)
+				return true
+			end
 		else
 			if SpecialUnit() then
 				SpellCancelQueuedSpell()
