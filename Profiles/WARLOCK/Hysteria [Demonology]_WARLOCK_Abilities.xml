@@ -92,6 +92,16 @@ local PQ_Sacrifice = PQ_Sacrifice
 
 if not PQI_MentallyDemo_AutoGrimoire_enable then return false end
 
+-- Don&amp;apos;t summon a pet when we already have one
+if not IsPlayerSpell(PQ_Sacrifice) and UnitExists(&amp;quot;pet&amp;quot;)
+	and (UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Felguard)
+	or UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(112870))
+then SpellStopCasting() return false end
+
+if UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Felguard)
+	or UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(112870)
+then return false end
+
 if IsPlayerSpell(PQ_Sacrifice) then
 	-- Sacrifice our pet when available
 	if UnitExists(&amp;quot;pet&amp;quot;)
@@ -104,12 +114,6 @@ if IsPlayerSpell(PQ_Sacrifice) then
 		CastSpellByName(GetSpellInfo(PQ_Felguard),&amp;quot;player&amp;quot;) return true
 	end
 else
-	-- Don&amp;apos;t summon a pet when we already have one
-	if UnitExists(&amp;quot;pet&amp;quot;)
-		and (UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Felguard)
-		or UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(112870))
-	then SpellStopCasting() return true end
-	
 	-- Summon a pet when we don&amp;apos;t have one active
 	if not UnitExists(&amp;quot;pet&amp;quot;) then
 		CastSpellByName(GetSpellInfo(PQ_Felguard),&amp;quot;player&amp;quot;)
@@ -244,8 +248,8 @@ if not UnitThreatSituation(&amp;quot;player&amp;quot;,&amp;quot;target&amp;quot;
 
 if PQR_SpellAvailable(PQ_Shatter)
 	and UnitThreatSituation(&amp;quot;player&amp;quot;,&amp;quot;target&amp;quot;) &amp;gt;= 2 then
-	CastSpellByName(GetSpellInfo(PQ_Shatter),&amp;quot;player&amp;quot;)
-	return true
+		CastSpellByName(GetSpellInfo(PQ_Shatter),&amp;quot;player&amp;quot;)
+		return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Automatic Buffing</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_DI = PQ_DI
 local Hysteria_Spells = Hysteria_Spell
 local PQ_AuraInfo = PQ_AuraInfo
@@ -334,7 +338,7 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_GulDan) and PQR_SpellAvailable(PQ_GulDan) and GetSpellCharges(PQ_GulDan) &amp;gt; 0 then
     if GetSpellCharges(PQ_GulDan) &amp;lt; 2 then
-        if GDCD &amp;lt;= 4 then
+        if GDCD &amp;lt;= 3.5 then
             SpellCancelQueuedSpell()
             CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
             return true
@@ -342,7 +346,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_GulDan) and PQR_SpellAvailable
 
         if Flame then
             if FlameTimer - GetTime() &amp;lt;= 4 then
-                SpellCancelQueuedSpell()
+            	SpellCancelQueuedSpell()
                 CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
                 return true
             end
@@ -350,6 +354,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_GulDan) and PQR_SpellAvailable
     end
 
     if GetSpellCharges(PQ_GulDan) &amp;gt; 1 then
+    	SpellCancelQueuedSpell()
         CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
         return true
     end
@@ -448,7 +453,6 @@ end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) and PQR_SpellAvailable(PQ_SoulFire) then
 	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then
-		SpellCancelQueuedSpell()
 		CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
 		return true
 	end
@@ -595,16 +599,18 @@ local PQ_SFlame = PQ_SFlame
 local PQ_GulDan = PQ_GulDan
 local fury = select(5,Hysteria_UnitInfo(&amp;quot;player&amp;quot;))
 local DSK,_,_,_,_,_,DSKtime = UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK)
+local Flame,_,_,FlameCount,_,_,FlameTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_SFlame,&amp;quot;player&amp;quot;)
 local GDCD = select(3,GetSpellCharges(PQ_GulDan)) + select(4,GetSpellCharges(PQ_GulDan)) - GetTime()
-
--- Respect Hand of Gul&amp;apos;dan!
-if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
-
--- Also, don&amp;apos;t activate if we&amp;apos;re not in range..
-if UnitExists(&amp;quot;target&amp;quot;) and IsSpellInRange(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;) == 0 then return false end
 
 -- Prevents us from accessing this during Metamorphosis
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
+
+-- Respect Hand of Gul&amp;apos;dan!
+if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
+if Flame and FlameCount &amp;lt; 2 then return false end
+
+-- Also, don&amp;apos;t activate if we&amp;apos;re not in range..
+if UnitExists(&amp;quot;target&amp;quot;) and IsSpellInRange(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;) == 0 then return false end
 
 -- Metaweaving
 if DSK and DSKtime - GetTime() &amp;lt;= 10 then
@@ -614,14 +620,14 @@ if DSK and DSKtime - GetTime() &amp;lt;= 10 then
 	end
 end
 if DSK and DSKtime - GetTime() &amp;gt; 10 then
-	if fury &amp;gt;= 750 and PQR_SpellAvailable(PQ_Meta) and UnitAffectingCombat(&amp;quot;player&amp;quot;) then
+	if fury &amp;gt;= 650 and PQR_SpellAvailable(PQ_Meta) and UnitAffectingCombat(&amp;quot;player&amp;quot;) then
 		SpellCancelQueuedSpell()
 		CastShapeshiftForm(1)
 	end
 end
 
 -- Enter Metamorphosis
-if fury &amp;gt;= 900
+if fury &amp;gt;= 925
 	and PQR_SpellAvailable(PQ_Meta) and UnitAffectingCombat(&amp;quot;player&amp;quot;) then
 	SpellCancelQueuedSpell()
 	CastShapeshiftForm(1)
@@ -643,7 +649,7 @@ if not isAOE then
 	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) then return false end
 	
 	-- Normal Fury cancel
-	if fury &amp;lt;= 750 then CancelShapeshiftForm() end
+	if fury &amp;lt;= 650 then CancelShapeshiftForm() end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Aura of the Elements</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_AOTE = PQ_AOTE
 local AOTE,_,_,_,_,_,AOTEtimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_AOTE,&amp;quot;PLAYER&amp;quot;)
 
@@ -670,7 +676,8 @@ then
 		CastSpellByName(GetSpellInfo(PQ_ImmoAura),&amp;quot;player&amp;quot;) return true
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Touch of Chaos</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_ToC = PQ_ToC
-local PQ_HasHero = PQ_HasHero
+
+if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 
 if UnitExists(&amp;quot;target&amp;quot;)
 	and not UnitIsDeadOrGhost(&amp;quot;target&amp;quot;)
@@ -678,7 +685,6 @@ if UnitExists(&amp;quot;target&amp;quot;)
 	and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1
 	and GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1
 	and PQR_SpellAvailable(PQ_ToC)
-	and not PQ_HasHero()
 then CastSpellByName(GetSpellInfo(PQ_ToC),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Void Ray</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
 local Cor,_,_,_,_,_,CorTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;)
 	
@@ -796,28 +802,24 @@ then
 		if doomTimer - GetTime() &amp;lt; 15 then
 			if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
 				and PQR_SpellAvailable(PQ_Meta) then
-				if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
-					SpellCancelQueuedSpell()
+					if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
 					CastShapeshiftForm(1)
 			end
-			
-			SpellCancelQueuedSpell()
 			CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;)
 			return true
 		end
 	else
 		if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
 			and PQR_SpellAvailable(PQ_Meta) then
-			if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
-				SpellCancelQueuedSpell()
+				if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
 				CastShapeshiftForm(1)
 		end
-	
-		SpellCancelQueuedSpell()
 		CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;)
 		return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_HasHero = PQ_HasHero
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_MC = PQ_MC
+local PQ_DSK = PQ_DSK
+local PQ_HasHero = PQ_HasHero
 local PQ_SoulFire = PQ_SoulFire
 local SpecialUnit = SpecialUnit
 local Hysteria_UnitInfo = Hysteria_UnitInfo
@@ -832,19 +834,13 @@ if not KilJaeden then
 end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
+	and SpecialUnit()
+	and UnitBuffID(&amp;quot;player&amp;quot;,PQ_MC)
 	and PQR_SpellAvailable(PQ_SoulFire)
-	and Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 25 and SpecialUnit() then
-		SpellCancelQueuedSpell()
-		CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
-		return true
-end
-
-if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
-	and PQR_SpellAvailable(PQ_SoulFire)
-	and PQ_HasHero() then
-		SpellCancelQueuedSpell()
-		CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
-		return true
+	and (UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or PQ_HasHero())
+then
+	CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Life Tap</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_LifeTap = 1454
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 
@@ -854,7 +850,7 @@ if select(3,Hysteria_UnitInfo(&amp;quot;player&amp;quot;)) &amp;gt; 55 then retu
 if Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;gt; 30
     and select(3,Hysteria_UnitInfo(&amp;quot;player&amp;quot;)) &amp;lt; 55
     and PQR_SpellAvailable(PQ_LifeTap)
-then SpellCancelQueuedSpell() CastSpellByName(GetSpellInfo(PQ_LifeTap),&amp;quot;player&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom (Mouseover)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Meta = PQ_Meta
+then CastSpellByName(GetSpellInfo(PQ_LifeTap),&amp;quot;player&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom (Mouseover)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Meta = PQ_Meta
 local PQ_Doom = PQ_Doom
 local PQ_GulDan = PQ_GulDan
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;mouseover&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
@@ -883,12 +879,10 @@ then
 	
 	if Doom then
 		if doomTimer - GetTime() &amp;lt; 15 then
-			SpellCancelQueuedSpell()
 			CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;)
 			return true
 		end
 	else
-		SpellCancelQueuedSpell()
 		CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;)
 		return true
 	end
@@ -912,4 +906,14 @@ local timer = select(7,UnitDebuffID(&amp;quot;player&amp;quot;,116161))
 if timer and timer - GetTime() &amp;lt; 2 then
 	SpellStopCasting()
 	RunMacroText(&amp;quot;/click ExtraActionButton1&amp;quot;)
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Frag Belt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local Belt = GetInventoryItemID(&amp;quot;player&amp;quot;, 6)
+
+if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
+	and GetItemCooldown(Belt) == 0
+	and GetCurrentKeyBoardFocus() == nil 
+	and UnitIsUnit(&amp;quot;target&amp;quot;, &amp;quot;mouseover&amp;quot;)
+then
+	UseItemByName(Belt)
+	if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end
+	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>
