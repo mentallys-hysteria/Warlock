@@ -449,10 +449,17 @@ function TargetValidation(unit, spell)
 			if IsSpellKnown(spell) then
 				if PQR_SpellAvailable(spell) then
 					if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
-			else return false end
-		else
-			if select(2, GetSpellCooldown(spell)) == 0 then return true end
-	 	end
+				else
+					if spell == 8092 or spell == 32379 then
+						local spellCD = select(2,GetSpellCooldown(spell)) + GetSpellCooldown(spell) - GetTime()
+						if spellCD <= 0 then spellCD = 0 end
+						if spellCD <= 0.5 then return true end
+					end
+					return false
+				end
+			else
+				if select(2, GetSpellCooldown(spell)) == 0 then return true end
+			end
 	end
 end
 
@@ -726,6 +733,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_VT		= 34914			-- Vampiric Touch
 	PQ_MS		= 73510			-- Mind Spike
 	PQ_MF		= 15407			-- Mind Flay
+	PQ_MFI		= 129197		-- Mind Flay (Insanity)
 	PQ_MSear	= 48045			-- Mind Sear
 	
 	-- Cooldowns
