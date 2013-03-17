@@ -267,7 +267,7 @@ if GetNumGroupMembers() &amp;gt; 0 then
 			-- Check for Spellpower Multiplier buffs
 			if not PQ_AuraInfo(5,member) then
 				-- Cast when in range
-				if IsSpellInRange(GetSpellInfo(PQ_DI),member) then
+				if IsSpellInRange(GetSpellInfo(PQ_DI),member) == 1 then
 					CastSpellByName(GetSpellInfo(PQ_DI),&amp;quot;player&amp;quot;) return true
 				end
 			end
