@@ -908,7 +908,7 @@ if timer and timer - GetTime() &amp;lt; 2 then
 	RunMacroText(&amp;quot;/click ExtraActionButton1&amp;quot;)
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Frag Belt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local Belt = GetInventoryItemID(&amp;quot;player&amp;quot;, 6)
 
-if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
+if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1
 	and GetItemCooldown(Belt) == 0
 	and GetCurrentKeyBoardFocus() == nil 
 	and UnitIsUnit(&amp;quot;target&amp;quot;, &amp;quot;mouseover&amp;quot;)
