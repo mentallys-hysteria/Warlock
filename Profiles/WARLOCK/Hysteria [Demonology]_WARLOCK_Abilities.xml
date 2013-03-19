@@ -92,6 +92,12 @@ local PQ_Sacrifice = PQ_Sacrifice
 
 if not PQI_MentallyDemo_AutoGrimoire_enable then return false end
 
+-- Don&amp;apos;t automatically start if we&amp;apos;re flying?
+if IsFlying() then return false end
+
+-- Don&amp;apos;t automatically start if we&amp;apos;re Falling? Lol.
+if IsFalling() then return false end
+
 -- Don&amp;apos;t summon a pet when we already have one
 if not IsPlayerSpell(PQ_Sacrifice) and UnitExists(&amp;quot;pet&amp;quot;)
 	and (UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Felguard)
@@ -125,7 +131,7 @@ else
 		CastSpellByName(GetSpellInfo(PQ_Felguard),&amp;quot;player&amp;quot;)
 		return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Pet] Command Demon</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_Service = PQ_Service
+end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Pet] Command Demon</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Service = PQ_Service
 local PQ_Sacrifice = PQ_Sacrifice
 local PQ_Supermacy = PQ_Supermacy
 
@@ -181,7 +187,7 @@ if IsPlayerSpell(PQ_Supermacy) then
 end
 
 -- We&amp;apos;ve not yet learned any Level 75 talents, fallback.
-if UnitLevel(&amp;quot;player&amp;quot;) =&amp;gt; 48 and UnitLevel(&amp;quot;player&amp;quot;) &amp;lt;= 75 then
+if UnitLevel(&amp;quot;player&amp;quot;) &amp;gt;= 48 and UnitLevel(&amp;quot;player&amp;quot;) &amp;lt;= 75 then
 	if UnitExists(&amp;quot;pet&amp;quot;)
 		and UnitExists(&amp;quot;target&amp;quot;)
 		and not UnitIsDeadOrGhost(&amp;quot;target&amp;quot;)
@@ -326,7 +332,7 @@ for i=1,#PQ_Lifeblood do
 			end
 		end
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Pet] Grimoire of Service</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local SCD = SCD
+end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Pet] Grimoire of Service</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local SCD = SCD
 local PQ_Service = PQ_Service
 local Hysteria_Spells = Hysteria_Spell
 local SpecialUnit = SpecialUnit
@@ -376,7 +382,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_GulDan) and PQR_SpellAvailable
         CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
         return true
     end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Corruption</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_Cor = PQ_Cor
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Corruption</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
 local TargetValidation = TargetValidation
 local isMindControledUnit = isMindControledUnit
 local v=PQI_MentallyDemo_PandemicTreshold_value or 4
@@ -439,7 +445,7 @@ if TargetValidation(&amp;quot;focus&amp;quot;,PQ_Cor) and isMindControledUnit(&a
 	if Cor then
 		if CorTimer - GetTime() &amp;lt; v then CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;focus&amp;quot;) return true end
 	else CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;focus&amp;quot;) return true end
-end</Lua><RecastDelay>0</RecastDelay><Target>Focus</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Shadowbolt</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_ShadowBolt = PQ_ShadowBolt
+end</Lua><RecastDelay>0</RecastDelay><Target>Focus</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Shadowbolt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_ShadowBolt = PQ_ShadowBolt
 local TargetValidation = TargetValidation
 
 -- Cancel on Metamorphosis
@@ -456,7 +462,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_ShadowBolt)
 then
     CastSpellByName(GetSpellInfo(PQ_ShadowBolt),&amp;quot;target&amp;quot;)
     return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_MCore = PQ_MCore
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_MCore = PQ_MCore
 local PQ_SoulFire = PQ_SoulFire
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local TargetValidation = TargetValidation
@@ -703,7 +709,8 @@ if UnitExists(&amp;quot;target&amp;quot;)
 	and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1
 	and GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1
 	and PQR_SpellAvailable(PQ_ToC)
-then CastSpellByName(GetSpellInfo(PQ_ToC),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Void Ray</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
+then CastSpellByName(GetSpellInfo(PQ_ToC),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Void Ray</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_HL = PQ_HL
+local PQ_Cor = PQ_Cor
 local Cor,_,_,_,_,_,CorTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;)
 	
 if UnitExists(&amp;quot;target&amp;quot;)
@@ -718,6 +725,11 @@ then
 			CastSpellByName(GetSpellInfo(115422),&amp;quot;target&amp;quot;)
 			return true
 		end
+	end
+	
+	if not IsPlayerSpell(PQ_HL) then
+		CastSpellByName(GetSpellInfo(115422),&amp;quot;target&amp;quot;)
+		return true
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Dark Soul: Knowledge</Name><Default>false</Default><SpellID>0</SpellID><Actions>/use 13|/use 14|/use 10|/script UIErrorsFrame:Clear()</Actions><Lua>local PQ_DSK = PQ_DSK
 if not PQI_MentallyDemo_DarkSoul_enable then return false end
@@ -793,9 +805,10 @@ if IsPlayerSpell(PQ_AV)
 	and PQR_SpellAvailable(PQ_AV)
 	and not GetCurrentKeyBoardFocus()
 	and PQI:IsHotkeys(PQI_MentallyDemo_Level90Talent_key)
-then CastSpellByName(GetSpellInfo(PQ_AV),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom</Name><Default>false</Default><SpellID>0</SpellID><Actions>/petattack</Actions><Lua>local PQ_Meta = PQ_Meta
+then CastSpellByName(GetSpellInfo(PQ_AV),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Meta = PQ_Meta
 local PQ_Doom = PQ_Doom
 local PQ_GulDan = PQ_GulDan
+local disableDoom = disableDoom
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
 local GDCD = select(3,GetSpellCharges(PQ_GulDan)) + select(4,GetSpellCharges(PQ_GulDan)) - GetTime()
 
@@ -807,6 +820,7 @@ if UnitExists(&amp;quot;target&amp;quot;)
 	and not PQR_IsOutOfSight(&amp;quot;target&amp;quot;, 1)
 	and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1
 	and PQR_SpellAvailable(PQ_Doom)
+	and not disableDoom(&amp;quot;target&amp;quot;)
 then
 	-- Don&amp;apos;t dot these targets
 	local npcID = tonumber(UnitGUID(&amp;quot;target&amp;quot;):sub(6,10), 16)
@@ -871,6 +885,7 @@ if Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;gt; 30
 then CastSpellByName(GetSpellInfo(PQ_LifeTap),&amp;quot;player&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Doom (Mouseover)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Meta = PQ_Meta
 local PQ_Doom = PQ_Doom
 local PQ_GulDan = PQ_GulDan
+local disableDoom = disableDoom
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;mouseover&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
 
 -- Disable if user disabled Mouseover dotting
@@ -884,6 +899,7 @@ if UnitExists(&amp;quot;mouseover&amp;quot;)
 	and not PQR_IsOutOfSight(&amp;quot;mouseover&amp;quot;, 1)
 	and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;mouseover&amp;quot;) == 1
 	and PQR_SpellAvailable(PQ_Doom)
+	and not disableDoom(&amp;quot;mouseover&amp;quot;)
 then
 	-- Don&amp;apos;t dot these targets
 	local npcID = tonumber(UnitGUID(&amp;quot;mouseover&amp;quot;):sub(6,10), 16)

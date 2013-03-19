@@ -24,6 +24,9 @@ buffs = {
 -- Trinket Proc list
 buffList = {104423,128985,125487,96230,105702,104993,26297,33702,126577,2825,32182,80353,90355,126659,126478,136082,126605,126476,136089,138898,139133,138786,138703,138963}
 
+-- Doom no-dot List
+disableDoomList = {69556,69553,69548,69492,69491,69480,69153,60885,68192,69050,70579,69069,69172,69184,69168}
+
 -- Complete boss unit table (Dungeons/Heroics/Raids)
 PQ_BossUnits = {
 	-- Cataclysm Dungeons --
@@ -189,6 +192,30 @@ PQ_TemporaryBuffs = {
 	{spellID = PQ_VolcanicPotion, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil}
 }
+
+-- Disable Doom
+disableDoom = nil
+function disableDoom(unit)
+	local disableDoomList = disableDoomList
+	local npcID = false
+	
+	-- Grab NPC ID
+	if UnitExists("target") then
+		local npcID = tonumber(UnitGUID("target"):sub(6,10), 16)
+	end
+	if UnitExists("mouseover") then
+		local npcID = tonumber(UnitGUID("mouseover"):sub(6,10), 16)
+	end
+	
+	-- Loop Units.
+	if npcID then
+		for i=1,#disableDoom do
+			if disableDoom[i] == npcID then return true end
+		end
+		return false
+	end
+end
+	
 
 -- Unit Information Function
 Hysteria_UnitInfo = nil
