@@ -535,6 +535,70 @@ if select(2, UnitClass("player")) == "DRUID" then
 elseif select(2, UnitClass("player")) == "MAGE" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff69CCF0Mage|cffFFBE69 Tables ...|cffffffff")
 	
+	-- PQInterface Settings
+	local config = {
+		name	= "Mage",
+		author	= "Mentally",
+		abilities	= {
+			{ 	name	= "Healthstone",
+				enable	= true,
+				widget	= { type = "numBox",
+					value	= 50,
+					step	= 5,
+					tooltip	= "Set automatic Healthstone usage.",
+				},
+			},
+			{ 	name	= "Auto Racials",
+				tooltip	= "Automatic Racial usage.",
+				enable	= true,
+				newSection  = true,
+			},
+			{ 	name	= "Auto Potion",
+				tooltip	= "Automatic Potion usage under Heroism.",
+				enable	= true,
+			},
+			{ 	name	= "Boss Cooldown",
+				tooltip = "Enabled/Disabled boss cooldown checks.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Mirror Image",
+				tooltip = "Enabled/Disabled automatic Mirror Image usage.",
+				enable	= true,
+			},
+		},
+		hotkeys = {
+			{	name	= "Pause Rotation",
+				enable	= true,
+				hotkeys	= {'rc', 'ra'},
+			},
+			{	name	= "Toggle Cooldown Mode",
+				enable	= true,
+				hotkeys	= {'rs'},
+			},
+			{	name	= "Alter Time",
+				enable	= true,
+				hotkeys	= {'la'},
+			},
+			{	name	= "Icy Veins",
+				enable	= true,
+				hotkeys	= {'ls'},
+			},
+			{	name	= "Level 30 Talent",
+				enable	= true,
+				hotkeys	= {'rc'},
+			},
+			{	name	= "Level 45 Talent",
+				enable	= true,
+				hotkeys	= {},
+			},
+			{	name	= "Level 90 Talent",
+				enable	= true,
+				hotkeys	= {'ra'},
+			},
+		},
+	}
+	HYSTERIA_MAGE = PQI:AddRotation(config)
+	
 	-- Skills
 	PQ_Frostbolt	= 116		-- Frostbolt
 	PQ_FFB			= 44614		-- Frostfire Bolt
@@ -543,6 +607,7 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 	PQ_CoC			= 120		-- Cone of Cold
 	PQ_Pyro			= 11366		-- Pyroblast
 	PQ_IBlast		= 108853	-- Inferno Blast
+	PQ_FBlast		= 2136		-- Fire Blast
 	PQ_FS			= 2120		-- Flamestrike
 	PQ_Fireball		= 133		-- Fireball
 	PQ_Blizzard		= 10		-- Blizzard
@@ -740,12 +805,22 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_SF		= 34433			-- Shadowfiend
 	PQ_Disp		= 47585			-- Dispersion
 	PQ_DPrayer	= 19236			-- Desperate Prayer
+	PQ_Fade		= 586			-- Fade
+	PQ_Silence	= 15487			-- Silence
+	PQ_Spectral	= 112833		-- Spectral Guise
+	PQ_Scream	= 8122			-- Psychic Scream
+	PQ_Embrace	= 15286			-- Vampiric Embrace
 	
 	-- Buffs
 	PQ_IF		= 588			-- Inner Fire
 	PQ_SForm	= 15473			-- Shadow Form
 	PQ_PWF		= 21562			-- Power Word: Fortitude
 	PQ_GMS		= 81292			-- Glyph of Mind Spike
+	PQ_Shield	= 17			-- Power Word: Shield
+	PQ_POM		= 33076			-- Prayer of Mending
+	PQ_Renew	= 139			-- Renew
+	PQ_Phan		= 108942		-- Phantasm
+	PQ_Fear		= 6346			-- Fear Ward
 	
 	-- Procs
 	PQ_SOD		= 87160 		-- Surge of Darkness

@@ -173,10 +173,22 @@ if IsPlayerSpell(PQ_Supermacy) then
 		and UnitExists(&amp;quot;target&amp;quot;)
 		and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1
 	then
-		--PetAttack(&amp;quot;target&amp;quot;)
-		
 		if PQR_SpellAvailable(115831) and IsSpellInRange(GetSpellInfo(115625),&amp;quot;target&amp;quot;) == 1 then
 			CastSpellByName(GetSpellInfo(119898),&amp;quot;target&amp;quot;)
+			return true
+		end
+	end
+end
+
+-- We&amp;apos;ve not yet learned any Level 75 talents, fallback.
+if UnitLevel(&amp;quot;player&amp;quot;) =&amp;gt; 48 and UnitLevel(&amp;quot;player&amp;quot;) &amp;lt;= 75 then
+	if UnitExists(&amp;quot;pet&amp;quot;)
+		and UnitExists(&amp;quot;target&amp;quot;)
+		and not UnitIsDeadOrGhost(&amp;quot;target&amp;quot;)
+		and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1 
+	then
+		if PQR_SpellAvailable(89751) and IsSpellInRange(GetSpellInfo(30213),&amp;quot;target&amp;quot;) == 1 then
+			CastSpellByName(GetSpellInfo(119914),&amp;quot;target&amp;quot;)
 			return true
 		end
 	end
@@ -188,6 +200,12 @@ local SpecialUnit = SpecialUnit
 
 -- Don&amp;apos;t use Racials if user tagged off automatic use
 if not PQI_MentallyDemo_AutoRacials_enable then return false end
+
+-- Draenei: Gift of the Naaru
+if IsPlayerSpell(59544) and PQR_SpellAvailable(59544) and Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;lt; 60 then
+	CastSpellByName(GetSpellInfo(59544),&amp;quot;player&amp;quot;)
+	return true
+end
 
 -- Troll: Berserking
 if IsPlayerSpell(26297) and not SCD then
