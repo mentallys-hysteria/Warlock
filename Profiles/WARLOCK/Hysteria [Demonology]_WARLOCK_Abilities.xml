@@ -865,14 +865,23 @@ if not KilJaeden then
 	if PQR_IsMoving(0.3) then return false end
 end
 
-if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
-	and SpecialUnit()
-	and UnitBuffID(&amp;quot;player&amp;quot;,PQ_MC)
-	and PQR_SpellAvailable(PQ_SoulFire)
-	and (UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or PQ_HasHero())
-then
-	CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
-	return true
+if itemCheck(warlockT15) &amp;gt;= 2 then
+	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
+		and SpecialUnit()
+		and PQR_SpellAvailable(PQ_SoulFire)
+		and (UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 25) then
+			CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+			return true
+	end
+else
+	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
+		and SpecialUnit()
+		and UnitBuffID(&amp;quot;player&amp;quot;,PQ_MC)
+		and PQR_SpellAvailable(PQ_SoulFire)
+		and (UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or PQ_HasHero()) then
+			CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+			return true
+	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Life Tap</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_LifeTap = 1454
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 

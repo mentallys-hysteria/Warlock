@@ -193,6 +193,13 @@ PQ_TemporaryBuffs = {
 	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil}
 }
 
+-- Warlock Tier set table
+warlockT15 = {
+	96725,96726,96727,96728,96729,	-- Tier 15: Heroic
+	95325,95326,95327,95328,95329,	-- Tier 15: Normal
+	95981,95982,95983,95984,95985	-- Tier 15: LFR
+}
+
 -- Disable Doom
 disableDoom = nil
 function disableDoom(unit)
@@ -334,6 +341,18 @@ function isMindControledUnit(unit)
 		end
 		return true
 	end
+end
+
+-- Returns the number of items currently equipped from the given table.
+itemCheck = nil
+function itemCheck(tbl)
+	local itemCount = 0
+	for i=1,#tbl do
+		if IsEquippedItem(tbl[i]) then
+			itemCount = itemCount + 1
+		end
+	end
+	return itemCount
 end
 
 -- Aura Information Function
@@ -599,8 +618,8 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 				hotkeys	= {'rc', 'ra'},
 			},
 			{	name	= "Toggle Cooldown Mode",
-				enable	= true,
-				hotkeys	= {'rs'},
+				enable	= false,
+				hotkeys	= {},
 			},
 			{	name	= "Alter Time",
 				enable	= true,
@@ -615,12 +634,16 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 				hotkeys	= {'rc'},
 			},
 			{	name	= "Level 45 Talent",
-				enable	= true,
+				enable	= false,
 				hotkeys	= {},
 			},
 			{	name	= "Level 90 Talent",
 				enable	= true,
 				hotkeys	= {'ra'},
+			},
+			{	name	= "Pet Freeze (Mouseover)",
+				enable	= true,
+				hotkeys	= {'rs'},
 			},
 		},
 	}
