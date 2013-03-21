@@ -446,16 +446,12 @@ end
 -- Heroism check Function
 PQ_HasHero = nil
 function PQ_HasHero()
-	local PQ_BL = PQ_BloodLust
-	local PQ_Hero = PQ_Heroism
-	local PQ_TW = PQ_TimeWarp
-	local PQ_AH = PQ_Hysteria
-
-	if UnitBuffID("player",PQ_BL)
-		or UnitBuffID("player",PQ_Hero)
-		or UnitBuffID("player",PQ_TW)
-		or UnitBuffID("player",PQ_AH)
-	then return true else return false end
+	local heroism = {PQ_BloodLust, PQ_Heroism, PQ_TimeWarp, PQ_Hysteria}
+	
+	for i=1,#heroism do
+		if UnitBuffID("player",heroism[i]) then return true, heroism[i] end
+	end
+	return false
 end
 
 

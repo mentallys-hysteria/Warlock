@@ -666,6 +666,15 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 if isAOE and fury &amp;lt;= 250 then CancelShapeshiftForm() end
 
 if not isAOE then
+	-- Cancel Metamorphosis if Heroism is about to run out and DSK come off CD
+	if PQ_HasHero() then
+		local name,_,_,_,_,_,endTime = UnitBuffID(&amp;quot;player&amp;quot;,select(2,PQ_HasHero()))
+		
+		if endTime &amp;lt; 5 and PQR_SpellAvailableTime(PQ_DSK) &amp;lt; 20 then
+			CancelShapeshiftForm()
+		end
+	end
+	
 	-- Soul Fire and Heroism..
 	if PQ_HasHero() and fury &amp;lt;= 160 then CancelShapeshiftForm() end
 	
@@ -854,8 +863,9 @@ local PQ_DSK = PQ_DSK
 local PQ_HasHero = PQ_HasHero
 local PQ_SoulFire = PQ_SoulFire
 local SpecialUnit = SpecialUnit
-local Hysteria_UnitInfo = Hysteria_UnitInfo
 local TargetValidation = TargetValidation
+local Hysteria_UnitInfo = Hysteria_UnitInfo
+local fury = select(5,Hysteria_UnitInfo(&amp;quot;player&amp;quot;))
 
 -- Human Form is bad
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
@@ -868,10 +878,24 @@ end
 if itemCheck(warlockT15) &amp;gt;= 2 then
 	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
 		and SpecialUnit()
-		and PQR_SpellAvailable(PQ_SoulFire)
-		and (UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 25) then
-			CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
-			return true
+		and PQR_SpellAvailable(PQ_SoulFire) then
+			local name,_,_,_,_,_,endTime = UnitBuffID(&amp;quot;player&amp;quot;,select(2,PQ_HasHero()))
+			
+			-- Burn when boss is at execute
+			if Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 12 then
+				CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+				return true
+			end
+			
+			-- If DSK is going to be up closely after Hero, stop burning.
+			if endTime and endTime &amp;lt; 10
+				and PQR_SpellAvailableTime(PQ_DSK) &amp;lt; 20 then return false end
+			
+			-- If we have hero and over 500 Fury, burn with Soul Fire
+			if PQ_HasHero() and fury &amp;gt; 500 then
+				CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+				return true
+			end
 	end
 else
 	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
