@@ -190,7 +190,23 @@ PQ_TemporaryBuffs = {
 	{spellID = PQ_JadeSerpent, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_PowerTorrent, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_VolcanicPotion, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil}
+	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil},
+	{spellID = 26297, check = true, hasBuff = false, endTime = nil},
+	{spellID = 33702, check = true, hasBuff = false, endTime = nil},
+	{spellID = 104423, check = true, hasBuff = false, endTime = nil},
+	{spellID = 128985, check = true, hasBuff = false, endTime = nil},
+	{spellID = 126577, check = true, hasBuff = false, endTime = nil},
+	{spellID = 126659, check = true, hasBuff = false, endTime = nil},
+	{spellID = 126478, check = true, hasBuff = false, endTime = nil},
+	{spellID = 136082, check = true, hasBuff = false, endTime = nil},
+	{spellID = 126605, check = true, hasBuff = false, endTime = nil},
+	{spellID = 126476, check = true, hasBuff = false, endTime = nil},
+	{spellID = 136089, check = true, hasBuff = false, endTime = nil},
+	{spellID = 138898, check = true, hasBuff = false, endTime = nil},
+	{spellID = 139133, check = true, hasBuff = false, endTime = nil},
+	{spellID = 138786, check = true, hasBuff = false, endTime = nil},
+	{spellID = 138703, check = true, hasBuff = false, endTime = nil},
+	{spellID = 138963, check = true, hasBuff = false, endTime = nil}
 }
 
 -- Warlock Tier set table
@@ -671,8 +687,7 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 	-- Cooldowns
 	PQ_IB			= 45438		-- Ice Block
 	PQ_MI			= 55342		-- Mirror Image
-	--PQ_IV			= 131078	-- Icy Veins
-	PQ_IV			= 12472		-- Icy Veins
+	PQ_IV			= 12472		-- Icy Veins (Unglyphed)
 	PQ_Evo			= 12051		-- Evocation
 	PQ_Comb			= 11129		-- Combustion
 	
@@ -945,6 +960,14 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 					value	= 50,
 					step	= 5,
 					tooltip	= "Set automatic Dark Regen usage.",
+				},
+			},
+			{ 	name	= "Mortal Coil",
+				enable	= false,
+				widget	= { type = "numBox",
+					value	= 50,
+					step	= 5,
+					tooltip	= "Set automatic Mortal Coil usage.",
 				},
 			},
 			{ 	name	= "Auto Racials",

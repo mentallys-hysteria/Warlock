@@ -401,9 +401,23 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_Cor) and isMindControledUnit(&
 	if Cor then
 		for i=1,#PQ_TempTable do
 			if PQ_TempTable[i].hasBuff then
-				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 and CorTimer - GetTime() &amp;lt; 10 then
+				-- Unerring Vision of Lei-Shen
+				if PQ_TempTable[i].spellID == 138963 then
+					if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 then
+						CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+						return true
+					end
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 and CorTimer - GetTime() &amp;lt; 15 then
 					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
-					return true end
+					return true
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;gt; 13 and CorTimer - GetTime() &amp;lt; 18 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
 			end
 		end
 		
@@ -420,15 +434,38 @@ if not PQI_MentallyDemo_MouseoverDotting_enable then return false end
 if TargetValidation(&amp;quot;mouseover&amp;quot;,PQ_Cor) and isMindControledUnit(&amp;quot;mouseover&amp;quot;) then
 	local Cor,_,_,_,_,_,CorTimer = UnitDebuffID(&amp;quot;mouseover&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;)
 	local npcID = tonumber(UnitGUID(&amp;quot;mouseover&amp;quot;):sub(6,10), 16)
+	local PQ_TempBuffs = PQ_CheckTempBuffs
+	local PQ_TempTable = PQ_TemporaryBuffs
+	local PQ_TimeLeft = PQ_GetTimeLeft
+	PQ_TempBuffs(PQ_TempTable)
 	
 	-- Wind Lord Mel&amp;apos;jarak override
-	if npcID == 65498 or npcID == 65499 or npcID == 65500 then return false end
-	-- Protectors of the Endless
-	if npcID == 60885 then return false end
-	-- Tsulong
-	if npcID == 63346 then return false end
+	if npcID == 65498 or npcID == 65499 or npcID == 65500
+		or npcID == 60885 or npcID == 63346 then return false end
 	
 	if Cor then
+		for i=1,#PQ_TempTable do
+			if PQ_TempTable[i].hasBuff then
+				-- Unerring Vision of Lei-Shen
+				if PQ_TempTable[i].spellID == 138963 then
+					if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 then
+						CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+						return true
+					end
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 and CorTimer - GetTime() &amp;lt; 15 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;gt; 13 and CorTimer - GetTime() &amp;lt; 18 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+			end
+		end
+		
 		if CorTimer - GetTime() &amp;lt; v then CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;mouseover&amp;quot;) return true end
 	else CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;mouseover&amp;quot;) return true end
 end</Lua><RecastDelay>0</RecastDelay><Target>Mouseover</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Corruption (Focus)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
@@ -441,8 +478,34 @@ if not PQI_MentallyDemo_FocusDotting_enable then return false end
 
 if TargetValidation(&amp;quot;focus&amp;quot;,PQ_Cor) and isMindControledUnit(&amp;quot;focus&amp;quot;) then
 	local Cor,_,_,_,_,_,CorTimer = UnitDebuffID(&amp;quot;focus&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;)
+	local PQ_TempBuffs = PQ_CheckTempBuffs
+	local PQ_TempTable = PQ_TemporaryBuffs
+	local PQ_TimeLeft = PQ_GetTimeLeft
+	PQ_TempBuffs(PQ_TempTable)
 	
 	if Cor then
+		for i=1,#PQ_TempTable do
+			if PQ_TempTable[i].hasBuff then
+				-- Unerring Vision of Lei-Shen
+				if PQ_TempTable[i].spellID == 138963 then
+					if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 then
+						CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+						return true
+					end
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 and CorTimer - GetTime() &amp;lt; 15 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;gt; 13 and CorTimer - GetTime() &amp;lt; 18 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+			end
+		end
+		
 		if CorTimer - GetTime() &amp;lt; v then CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;focus&amp;quot;) return true end
 	else CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;focus&amp;quot;) return true end
 end</Lua><RecastDelay>0</RecastDelay><Target>Focus</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Shadowbolt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_ShadowBolt = PQ_ShadowBolt
@@ -626,12 +689,12 @@ local DSK,_,_,_,_,_,DSKtime = UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK)
 local Flame,_,_,FlameCount,_,_,FlameTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_SFlame,&amp;quot;player&amp;quot;)
 local GDCD = select(3,GetSpellCharges(PQ_GulDan)) + select(4,GetSpellCharges(PQ_GulDan)) - GetTime()
 
+-- Respect Hand of Gul&amp;apos;dan!
+if Flame and FlameCount &amp;lt; 2 then return false end
+if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
+
 -- Prevents us from accessing this during Metamorphosis
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
-
--- Respect Hand of Gul&amp;apos;dan!
-if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
-if Flame and FlameCount &amp;lt; 2 then return false end
 
 -- Also, don&amp;apos;t activate if we&amp;apos;re not in range..
 if UnitExists(&amp;quot;target&amp;quot;) and IsSpellInRange(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;) == 0 then return false end
@@ -666,15 +729,6 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 if isAOE and fury &amp;lt;= 250 then CancelShapeshiftForm() end
 
 if not isAOE then
-	-- Cancel Metamorphosis if Heroism is about to run out and DSK come off CD
-	if PQ_HasHero() then
-		local name,_,_,_,_,_,endTime = UnitBuffID(&amp;quot;player&amp;quot;,select(2,PQ_HasHero()))
-		
-		if endTime &amp;lt; 5 and PQR_SpellAvailableTime(PQ_DSK) &amp;lt; 20 then
-			CancelShapeshiftForm()
-		end
-	end
-	
 	-- Soul Fire and Heroism..
 	if PQ_HasHero() and fury &amp;lt;= 160 then CancelShapeshiftForm() end
 	
@@ -831,15 +885,56 @@ if UnitExists(&amp;quot;target&amp;quot;)
 	and PQR_SpellAvailable(PQ_Doom)
 	and not disableDoom(&amp;quot;target&amp;quot;)
 then
+	-- More locals
+	local PQ_TempBuffs = PQ_CheckTempBuffs
+	local PQ_TempTable = PQ_TemporaryBuffs
+	local PQ_TimeLeft = PQ_GetTimeLeft
+	PQ_TempBuffs(PQ_TempTable)
+	
 	-- Don&amp;apos;t dot these targets
 	local npcID = tonumber(UnitGUID(&amp;quot;target&amp;quot;):sub(6,10), 16)
 	
 	-- Protectors of the Endless
-	if npcID == 60885 then return false end
-	-- Tsulong
-	if npcID == 62919 or npcID == 63346 then return false end
+	if npcID == 60885 or npcID == 62919 or npcID == 63346 then return false end
 	
 	if Doom then
+		for i=1,#PQ_TempTable do
+			if PQ_TempTable[i].hasBuff then
+				-- Unerring Vision of Lei-Shen
+				if PQ_TempTable[i].spellID == 138963 then
+					if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 then
+						if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
+							and PQR_SpellAvailable(PQ_Meta) then
+								if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
+								CastShapeshiftForm(1)
+						end
+						CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;)
+						return true
+					end
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 and doomTimer - GetTime() &amp;lt; 30 then
+					if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
+						and PQR_SpellAvailable(PQ_Meta) then
+							if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
+							CastShapeshiftForm(1)
+					end
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;gt; 13 and doomTimer - GetTime() &amp;lt; 50 then
+					if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
+						and PQR_SpellAvailable(PQ_Meta) then
+							if GetSpellCharges(PQ_GulDan) &amp;lt; 2 and GDCD &amp;lt;= 4 then return false end
+							CastShapeshiftForm(1)
+					end
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+			end
+		end
+		
 		if doomTimer - GetTime() &amp;lt; 15 then
 			if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0
 				and PQR_SpellAvailable(PQ_Meta) then
@@ -858,7 +953,7 @@ then
 		CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;)
 		return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_MC = PQ_MC
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Soul Fire</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_MCore = PQ_MCore
 local PQ_DSK = PQ_DSK
 local PQ_HasHero = PQ_HasHero
 local PQ_SoulFire = PQ_SoulFire
@@ -866,6 +961,7 @@ local SpecialUnit = SpecialUnit
 local TargetValidation = TargetValidation
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local fury = select(5,Hysteria_UnitInfo(&amp;quot;player&amp;quot;))
+local DSKTime = (GetSpellCooldown(PQ_DSK) + select(2,GetSpellCooldown(PQ_DSK)) - GetTime())
 
 -- Human Form is bad
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
@@ -875,32 +971,45 @@ if not KilJaeden then
 	if PQR_IsMoving(0.3) then return false end
 end
 
+-- DSK is less than 0, set it to 0
+if DSKTime &amp;lt;= 0 then DSKTime = 0 end
+
 if itemCheck(warlockT15) &amp;gt;= 2 then
 	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
 		and SpecialUnit()
 		and PQR_SpellAvailable(PQ_SoulFire) then
-			local name,_,_,_,_,_,endTime = UnitBuffID(&amp;quot;player&amp;quot;,select(2,PQ_HasHero()))
-			
-			-- Burn when boss is at execute
-			if Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 12 then
+			-- Spam if we have DS up, regardless.
+			if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) then
 				CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
 				return true
 			end
 			
-			-- If DSK is going to be up closely after Hero, stop burning.
-			if endTime and endTime &amp;lt; 10
-				and PQR_SpellAvailableTime(PQ_DSK) &amp;lt; 20 then return false end
-			
-			-- If we have hero and over 500 Fury, burn with Soul Fire
-			if PQ_HasHero() and fury &amp;gt; 500 then
-				CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
-				return true
+			-- During Heroism...
+			if PQ_HasHero() then
+				local endTime = select(7,select(2,PQ_HasHero())) or 0
+				
+				-- ... Don&amp;apos;t burn if DS duration is lower than Heroism,
+				--		.. Or if DS is coming off CD shortly after Heroism.
+				if PQ_Round(DSKTime) &amp;lt; endTime then return false end
+				if PQ_Round(DSKTime) &amp;gt; endTime then
+					if (PQ_Round(DSKTime) - endTime) &amp;gt; 10 then
+						CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+						return true
+					end
+				end
+				
+				-- ... Burn if Fury is high.
+				if fury &amp;gt;= 500 then
+					CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
+					return true
+				end
 			end
 	end
 else
 	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
 		and SpecialUnit()
-		and UnitBuffID(&amp;quot;player&amp;quot;,PQ_MC)
+		and UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore)
+		and select(4,UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore)) &amp;gt; 2
 		and PQR_SpellAvailable(PQ_SoulFire)
 		and (UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) or PQ_HasHero()) then
 			CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
@@ -934,17 +1043,42 @@ if UnitExists(&amp;quot;mouseover&amp;quot;)
 	and PQR_SpellAvailable(PQ_Doom)
 	and not disableDoom(&amp;quot;mouseover&amp;quot;)
 then
+	-- More locals
+	local PQ_TempBuffs = PQ_CheckTempBuffs
+	local PQ_TempTable = PQ_TemporaryBuffs
+	local PQ_TimeLeft = PQ_GetTimeLeft
+	PQ_TempBuffs(PQ_TempTable)
+	
 	-- Don&amp;apos;t dot these targets
 	local npcID = tonumber(UnitGUID(&amp;quot;mouseover&amp;quot;):sub(6,10), 16)
 	
 	-- Wind Lord Mel&amp;apos;jarak override
-	if npcID == 65498 or npcID == 65499 or npcID == 65500 then return false end
-	-- Protectors of the Endless
-	if npcID == 60885 then return false end
-	-- Tsulong
-	if npcID == 62919 or npcID == 63346 then return false end
+	if npcID == 65498 or npcID == 65499 or npcID == 65500
+		or npcID == 60885 or npcID == 62919 or npcID == 63346 then return false end
 	
 	if Doom then
+		for i=1,#PQ_TempTable do
+			if PQ_TempTable[i].hasBuff then
+				-- Unerring Vision of Lei-Shen
+				if PQ_TempTable[i].spellID == 138963 then
+					if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 then
+						CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;)
+						return true
+					end
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;lt; 4 and doomTimer - GetTime() &amp;lt; 30 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+				
+				if PQ_TimeLeft(PQ_TempTable, PQ_TempTable[i].spellID) &amp;gt; 13 and doomTimer - GetTime() &amp;lt; 50 then
+					CastSpellByName(GetSpellInfo(PQ_Cor),&amp;quot;target&amp;quot;)
+					return true
+				end
+			end
+		end
+		
 		if doomTimer - GetTime() &amp;lt; 15 then
 			CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;)
 			return true
@@ -983,4 +1117,17 @@ then
 	UseItemByName(Belt)
 	if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end
 	return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Automatic Mortal Coil</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_MC = PQ_MC
+local Hysteria_UnitInfo = Hysteria_UnitInfo
+local v=PQI_MentallyDemo_MortalCoil_value 
+
+-- Disable if we don&amp;apos;t have automatic usage enabled.
+if not PQI_MentallyDemo_MortalCoil_enable then return false end
+
+-- Mortal Coil
+if IsPlayerSpell(PQ_MC)
+	and PQR_SpellAvailable(PQ_MC)
+	and Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;lt;= v
+	and UnitAffectingCombat(&amp;quot;player&amp;quot;)
+	and not PQI_MentallyDemo_Level30Talent_enable
+then CastSpellByName(GetSpellInfo(PQ_MC),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>
