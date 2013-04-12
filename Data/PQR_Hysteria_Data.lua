@@ -191,22 +191,8 @@ PQ_TemporaryBuffs = {
 	{spellID = PQ_PowerTorrent, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_VolcanicPotion, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil},
-	{spellID = 26297, check = true, hasBuff = false, endTime = nil},
-	{spellID = 33702, check = true, hasBuff = false, endTime = nil},
-	{spellID = 104423, check = true, hasBuff = false, endTime = nil},
-	{spellID = 128985, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126577, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126659, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126478, check = true, hasBuff = false, endTime = nil},
-	{spellID = 136082, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126605, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126476, check = true, hasBuff = false, endTime = nil},
-	{spellID = 136089, check = true, hasBuff = false, endTime = nil},
-	{spellID = 138898, check = true, hasBuff = false, endTime = nil},
-	{spellID = 139133, check = true, hasBuff = false, endTime = nil},
-	{spellID = 138786, check = true, hasBuff = false, endTime = nil},
-	{spellID = 138703, check = true, hasBuff = false, endTime = nil},
-	{spellID = 138963, check = true, hasBuff = false, endTime = nil}
+	{spellID = 126579, check = true, hasBuff = false, endTime = nil},	-- Light of the Cosmos
+	{spellID = 138704, check = true, hasBuff = false, endTime = nil}	-- Volatile Talisman of the Shado-Pan Assault
 }
 
 -- Warlock Tier set table
@@ -279,34 +265,77 @@ end
 
 -- Combat log event reader
 function HysteriaFrame_OnEvent(self,event,...)
+	if event == "UNIT_SPELLCAST_CHANNEL_START" then
+		if UnitChannelInfo("player") == GetSpellInfo(15407) then
+			flayTicks = 0
+			maxFlayTicks = 3
+		end
+		if UnitChannelInfo("player") == GetSpellInfo(129197) then
+			insanityTicks = 0
+			maxInsanityTicks = 3
+		end
+	end
+	
+	if event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+		flayTicks = 0
+		insanityTicks = 0
+		maxFlayTicks = 3
+		maxInsanityTicks = 3
+	end
+	
 	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
 		local subEvent		= select(2, ...)
 		local source		= select(5, ...)
 		local destination	= select(9, ...)
-		local spell			= select(13, ...)
+		local spell			= select(13, ...)	-- Spell Name
 		local damage		= select(15, ...)
 		local critical		= select(21, ...)
 		local buffList = buffList
 		
 		if subEvent == "SPELL_PERIODIC_DAMAGE" then
+			-- Catch Ignite
 			if UnitName("player") == source and destination == UnitName("target") then
 				if spell == GetSpellInfo(12654) then  
 					IgniteDamage = damage 
 				end
 			end
+			
+			-- Mind Flay
+			if UnitName("player") == source and spell == GetSpellInfo(15407) then flayTicks = flayTicks + 1 end
+			-- Mind Flay (Insanity)
+			if UnitName("player") == source and spell == GetSpellInfo(129197) then insanityTicks = insanityTicks + 1 end
 		end
-		-- Aura removed events
+		
+		-- Refreshed Aura events
+		if subEvent == "SPELL_AURA_REFRESH" then
+			-- Mind Flay
+			if UnitName("player") == source and spell == GetSpellInfo(15407) then
+				flayTicks = 0
+				maxFlayTicks = 4
+			end
+			-- Mind Flay (Insanity)
+			if UnitName("player") == source and spell == GetSpellInfo(129197) then
+				insanityTicks = 0
+				maxInsanityTicks = 4
+			end
+		end
+		
+		-- Removed aura events
 		if subEvent == "SPELL_AURA_REMOVED" then
 			if UnitName("player") == source then
 				-- Ignite Removed
 				if spell == GetSpellInfo(12654) then  
 					IgniteDamage = 0 
 				end
+				-- Mind Flay
+				if spell == GetSpellInfo(15407) then flayTicks = 0 maxFlayTicks = 3 end
+				-- Mind Flay (Insanity)
+				if spell == GetSpellInfo(129197) then insanityTicks = 0 maxInsanityTicks = 3 end
 				-- Living Bomb fell off a target
 				if spell == GetSpellInfo(44457) then
 					LivingBomb = LivingBomb - 1
 				end
-				-- A proc or temporary buff removed.
+				-- A proc or temporary buff removed
 				for i=1,#buffList do
 					if spell == GetSpellInfo(buffList[i]) then
 						Trinket = Trinket - 1
@@ -314,7 +343,8 @@ function HysteriaFrame_OnEvent(self,event,...)
 				end
 			end
 		end
-		-- Aura applied events
+		
+		-- Applied aura events
 		if subEvent == "SPELL_AURA_APPLIED" then
 			if UnitName("player") == source then
 				-- Living Bomb applied to target.
@@ -329,12 +359,13 @@ function HysteriaFrame_OnEvent(self,event,...)
 				end
 			end
 		end
+		
 		-- Damage events
 		if subEvent == "SPELL_DAMAGE" then
 			if UnitName("player") == source and destination == UnitName("target") then
 				if spell == GetSpellInfo(11366) then  
 					PyroDamage = damage
-					if critical == 1 then PyroCrit = 1 else PyroCrit = 0 end
+					if critical == 1 then pyroCrit = 1 else pyroCrit = 0 end
 				end
 			end
 		end
@@ -478,6 +509,33 @@ function PQ_Round(number, decimal)
 	return math.floor(number * multiplier + 0.5) / multiplier
 end
 
+-- Smart channel cancel Function
+smartCancel = nil
+function smartCancel()
+	-- Don't cancel Mind Sear
+	if UnitChannelInfo("player") == GetSpellInfo(PQ_MSear) then return false end
+	
+	-- Stop if we're not cancelling channels.
+	if not PQI_MentallyShadow_MindFlay_enable then return true end
+	if not PQI_MentallyShadow_MindFlayInsanity_enable then return true end
+	
+	-- Mind Flay failsafe.
+	if PQI_MentallyShadow_MindFlay_value > 2 then
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < maxFlayTicks - 1 then return false end
+	else
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < PQI_MentallyShadow_MindFlay_value then return false end
+	end
+	
+	-- Mind Flay Insanity failsafe.
+	if PQI_MentallyShadow_MindFlayInsanity_value > 2 then
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
+	else
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyShadow_MindFlayInsanity_value then return false end
+	end
+	
+	return true
+end
+
 -- Boss Unit Function
 SpecialUnit = nil
 function SpecialUnit()
@@ -501,7 +559,7 @@ TargetValidation = nil
 function TargetValidation(unit, spell)
 	if UnitExists(unit)
 		and IsPlayerSpell(spell)
-		and UnitCanAttack("player", unit) == 1
+		and (UnitCanAttack("player", unit) == 1 and spell ~= PQ_MSear)
 		and not UnitIsDeadOrGhost(unit)
 		and not PQR_IsOutOfSight(unit, 1) then
 			if IsSpellKnown(spell) then
@@ -818,9 +876,34 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 				tooltip	= "Automatic Power Infusion usage.",
 				enable	= true,
 			},
+			{ 	name	= "Auto Level 90 Talent",
+				tooltip	= "Automatically casts your selected level 90 talent as appropriately as possible.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Boss Dotting",
+				tooltip = "Enabled/Disabled automatic dotting of Boss Units. This is intended to keep dots 100% up all bosses in range while you're doing other things.",
+				enable	= true,
+			},
 			{ 	name	= "Boss Cooldown",
 				tooltip = "Enabled/Disabled boss cooldown checks.",
 				enable	= true,
+			},
+			{ 	name	= "Mind Flay",
+				enable	= true,
+				newSection  = true,
+				widget	= { type = "numBox",
+					value	= 2,
+					step	= 1,
+					tooltip	= "Allow spells and abilities to cancel Mind Flay after set ticks.",
+				},
+			},
+			{ 	name	= "Mind Flay (Insanity)",
+				enable	= true,
+				widget	= { type = "numBox",
+					value	= 3,
+					step	= 1,
+					tooltip	= "Allow spells and abilities to cancel Mind Flay after set ticks.",
+				},
 			},
 		},
 		hotkeys = {
@@ -840,8 +923,12 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 				enable	= true,
 				hotkeys	= {'la'},
 			},
-			{	name	= "Level 90 Talent",
+			{	name	= "Mind Sear",
 				enable	= true,
+				hotkeys	= {'ls'},
+			},
+			{	name	= "Level 90 Talent",
+				enable	= false,
 				hotkeys	= {'ls'},
 			},
 			{	name	= "Level 15 Talent",
@@ -900,7 +987,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_PI		= 10060			-- Power Infusion
 	PQ_FDCL		= 109186		-- From Darkness, Comes Light
 	PQ_Solace	= 129250		-- Power Word: Solace
-	PQ_SWI		= 139139		-- Shadow Word: Insanity
+	PQ_SnI		= 139139		-- Shadow Word: Insanity
 	PQ_MBen		= 123040		-- Mindbender
 	PQ_Halo		= 120517		-- Halo
 	PQ_DarkHalo	= 120644		-- Dark Halo
@@ -922,7 +1009,6 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 		[PQ_SWD]		= {check = true, known = IsPlayerSpell(PQ_SWD)},
 		[PQ_SWP]		= {check = true, known = IsPlayerSpell(PQ_SWP)},
 		[PQ_PWF]		= {check = true, known = IsPlayerSpell(PQ_PWF)},
-		[PQ_SWI]		= {check = true, known = IsPlayerSpell(PQ_SWI)},
 		[PQ_Star]		= {check = true, known = IsPlayerSpell(PQ_Star)},
 		[PQ_MBen]		= {check = true, known = IsPlayerSpell(PQ_MBen)},
 		[PQ_Disp]		= {check = true, known = IsPlayerSpell(PQ_Disp)},
