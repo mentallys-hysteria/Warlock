@@ -22,10 +22,19 @@ buffs = {
 }
 
 -- Trinket Proc list
-buffList = {104423,128985,125487,96230,105702,104993,26297,33702,126577,2825,32182,80353,90355,126659,126478,136082,126605,126476,136089,138898,139133,138786,138703,138963}
+buffList = {104423,128985,33702,126577,126659,126478,136082,126605,126476,136089,138898,139133,138786,138703,137590}
 
 -- Doom no-dot List
-disableDoomList = {69556,69553,69548,69492,69491,69480,69153,60885,68192,69050,70579,69069,69172,69184,69168}
+disableDoomList = {69556,69553,69548,69492,69491,69480,69153,60885,68192,69050,70579,69069,69172,69184,69168,69013,69133,69462,63873,69232}
+
+-- Unerring Vision of Lei-Shen
+visionTrinket = {
+	95814,	-- LFR
+	94524,	-- Normal
+	96186,	-- Thunderforged
+	96558,	-- Heroic
+	96930	-- Heroic Thunderforged
+}
 
 -- Complete boss unit table (Dungeons/Heroics/Raids)
 PQ_BossUnits = {
@@ -175,6 +184,7 @@ PQ_Lightweave		= 125487
 PQ_PowerTorrent		= 74241
 PQ_VolcanicPotion	= 79476
 PQ_SynapseSprings	= 96230
+PQ_SynapseSprings2	= 126734
 PQ_JadeSerpent		= 105702
 PQ_JadeSpirit		= 104993
 PQ_BloodLust		= 2825
@@ -191,8 +201,11 @@ PQ_TemporaryBuffs = {
 	{spellID = PQ_PowerTorrent, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_VolcanicPotion, check = true, hasBuff = false, endTime = nil},
 	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126579, check = true, hasBuff = false, endTime = nil},	-- Light of the Cosmos
-	{spellID = 138704, check = true, hasBuff = false, endTime = nil}	-- Volatile Talisman of the Shado-Pan Assault
+	{spellID = PQ_SynapseSprings2, check = true, hasBuff = false, endTime = nil},
+	{spellID = 126577, check = true, hasBuff = false, endTime = nil},
+	{spellID = 138703, check = true, hasBuff = false, endTime = nil},
+	{spellID = 137590, check = true, hasBuff = false, endTime = nil},
+	{spellID = 138963, check = true, hasBuff = false, endTime = nil}
 }
 
 -- Warlock Tier set table
@@ -287,10 +300,19 @@ function HysteriaFrame_OnEvent(self,event,...)
 		local subEvent		= select(2, ...)
 		local source		= select(5, ...)
 		local destination	= select(9, ...)
-		local spell			= select(13, ...)	-- Spell Name
+		local spell			= select(13, ...)
 		local damage		= select(15, ...)
 		local critical		= select(21, ...)
 		local buffList = buffList
+		
+		if subEvent == "SPELL_CAST_SUCCESS" then
+			-- Time Rockfall on Tortos
+			if UnitName("boss1") == source then
+				if spell == GetSpellInfo(134476) then
+					Rockfall = GetTime()
+				end
+			end
+		end
 		
 		if subEvent == "SPELL_PERIODIC_DAMAGE" then
 			-- Catch Ignite
@@ -363,9 +385,20 @@ function HysteriaFrame_OnEvent(self,event,...)
 		-- Damage events
 		if subEvent == "SPELL_DAMAGE" then
 			if UnitName("player") == source and destination == UnitName("target") then
-				if spell == GetSpellInfo(11366) then  
+				-- Pyroblast
+				if spell == GetSpellInfo(PQ_Pyro) then
 					PyroDamage = damage
 					if critical == 1 then pyroCrit = 1 else pyroCrit = 0 end
+				end
+				-- Fireball
+				if spell == GetSpellInfo(PQ_Fireball) then
+					FireballDamage = damage
+					if critical == 1 then fireballCrit = 1 else fireballCrit = 0 end
+				end
+				-- Inferno Blast
+				if spell == GetSpellInfo(PQ_IBlast) then
+					InfernoDamage = damage
+					if critical == 1 then infernoCrit = 1 else infernoCrit = 0 end
 				end
 			end
 		end
@@ -515,22 +548,32 @@ function smartCancel()
 	-- Don't cancel Mind Sear
 	if UnitChannelInfo("player") == GetSpellInfo(PQ_MSear) then return false end
 	
-	-- Stop if we're not cancelling channels.
-	if not PQI_MentallyShadow_MindFlay_enable then return true end
-	if not PQI_MentallyShadow_MindFlayInsanity_enable then return true end
+	-- Not smart cancelling Mind Flay, default.
+	if not PQI_MentallyShadow_MindFlay_enable then
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) then return false end
+	end
+	
+	-- Not smart cancelling Mind Flay (Insanity), default.
+	if not PQI_MentallyShadow_MindFlayInsanity_enable then
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) then return false end
+	end
 	
 	-- Mind Flay failsafe.
-	if PQI_MentallyShadow_MindFlay_value > 2 then
-		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < maxFlayTicks - 1 then return false end
-	else
-		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < PQI_MentallyShadow_MindFlay_value then return false end
+	if PQI_MentallyShadow_MindFlay_enable then
+		if PQI_MentallyShadow_MindFlay_value > 2 then
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < maxFlayTicks - 1 then return false end
+		else
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < PQI_MentallyShadow_MindFlay_value then return false end
+		end
 	end
 	
 	-- Mind Flay Insanity failsafe.
-	if PQI_MentallyShadow_MindFlayInsanity_value > 2 then
-		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
-	else
-		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyShadow_MindFlayInsanity_value then return false end
+	if PQI_MentallyShadow_MindFlayInsanity_enable then
+		if PQI_MentallyShadow_MindFlayInsanity_value > 2 then
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
+		else
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyShadow_MindFlayInsanity_value then return false end
+		end
 	end
 	
 	return true
@@ -664,6 +707,14 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 					tooltip	= "Set automatic Healthstone usage.",
 				},
 			},
+			{ 	name	= "Auto Mana Gem",
+				enable	= true,
+				widget	= { type = "numBox",
+					value	= 85,
+					step	= 5,
+					tooltip	= "Set automatic Mana Gem usage.",
+				},
+			},
 			{ 	name	= "Auto Racials",
 				tooltip	= "Automatic Racial usage.",
 				enable	= true,
@@ -673,40 +724,50 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 				tooltip	= "Automatic Potion usage under Heroism.",
 				enable	= true,
 			},
+			{ 	name	= "Auto Mirror Image",
+				tooltip	= "Automatic usage of Mirror Image.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Boss Dotting",
+				tooltip = "Enabled/Disabled automatic dotting of Boss Units. This is intended to keep dots 100% up all bosses in range while you're doing other things.",
+				enable	= true,
+				newSection = true,
+			},
 			{ 	name	= "Boss Cooldown",
 				tooltip = "Enabled/Disabled boss cooldown checks.",
 				enable	= true,
 			},
-			{ 	name	= "Auto Mirror Image",
-				tooltip = "Enabled/Disabled automatic Mirror Image usage.",
+			{ 	name	= "Focus Dotting",
+				tooltip = "Enabled/Disabled Focus target dots.",
+				enable	= true,
+				newSection = true,
+			},
+			{ 	name	= "Mouseover Dotting",
+				tooltip = "Enabled/Disabled Mouseover target dots.",
 				enable	= true,
 			},
-			{ 	name	= "Enable Focus Dotting",
-				tooltip	= "Automatic Focus Dotting of Mage Bomb.",
+			{ 	name	= "Enable Automatic Mode",
+				tooltip = "Enables automatic mode: The profile will try to determine the best possible way to use cooldowns and abilities.",
 				enable	= true,
-				newSection  = true,
-			},
-			{ 	name	= "Enable Mouseover Dotting",
-				tooltip	= "Automatic Mouseover Dotting of Mage Bomb.",
-				enable	= true,
+				newSection = true,
 			},
 		},
 		hotkeys = {
 			{	name	= "Pause Rotation",
-				enable	= true,
-				hotkeys	= {'rc', 'ra'},
+				enable	= false,
+				hotkeys	= {'rc'},
 			},
 			{	name	= "Toggle Cooldown Mode",
 				enable	= false,
-				hotkeys	= {},
+				hotkeys	= {'rs'},
 			},
 			{	name	= "Alter Time",
-				enable	= true,
-				hotkeys	= {'la'},
+				enable	= false,
+				hotkeys	= {'ls'},
 			},
 			{	name	= "Icy Veins",
-				enable	= true,
-				hotkeys	= {'ls'},
+				enable	= false,
+				hotkeys	= {'la'},
 			},
 			{	name	= "Level 30 Talent",
 				enable	= true,
@@ -714,7 +775,7 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 			},
 			{	name	= "Level 45 Talent",
 				enable	= false,
-				hotkeys	= {},
+				hotkeys	= {'la'},
 			},
 			{	name	= "Level 90 Talent",
 				enable	= true,
@@ -722,7 +783,11 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 			},
 			{	name	= "Pet Freeze (Mouseover)",
 				enable	= true,
-				hotkeys	= {'rs'},
+				hotkeys	= {'ls'},
+			},
+			{	name	= "Flamestrike (Mouseover)",
+				enable	= true,
+				hotkeys	= {'la'},
 			},
 		},
 	}
@@ -883,6 +948,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 			{ 	name	= "Auto Boss Dotting",
 				tooltip = "Enabled/Disabled automatic dotting of Boss Units. This is intended to keep dots 100% up all bosses in range while you're doing other things.",
 				enable	= true,
+				newSection  = true,
 			},
 			{ 	name	= "Boss Cooldown",
 				tooltip = "Enabled/Disabled boss cooldown checks.",
@@ -1065,12 +1131,17 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 				tooltip	= "Automatic Potion usage under Heroism.",
 				enable	= true,
 			},
-			{ 	name	= "Imp Swarm",
+			{ 	name	= "Auto Imp Swarm",
 				tooltip	= "Only works if you have Imp Swarm Glyphed!",
 				enable	= true,
 			},
 			{ 	name	= "Auto Grimoire",
 				enable	= true,
+			},
+			{ 	name	= "Auto Boss Dotting",
+				tooltip = "Enabled/Disabled automatic dotting of Boss Units. This is intended to keep dots 100% up all bosses in range while you're doing other things.",
+				enable	= true,
+				newSection  = true,
 			},
 			{ 	name	= "Boss Cooldown",
 				tooltip = "Enabled/Disabled boss cooldown checks.",
@@ -1084,14 +1155,6 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			{ 	name	= "Mouseover Dotting",
 				tooltip	= "Enable/Disable mouseover dotting.",
 				enable	= true,
-			},
-			{ 	name	= "Pandemic Treshold",
-				enable	= true,
-				widget	= { type = "numBox",
-					value	= 9,
-					step	= 1,
-					tooltip	= "Set the DoT refresh treshold.",
-				},
 			},
 		},
 		hotkeys = {
@@ -1118,10 +1181,6 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			{	name	= "Level 90 Talent",
 				enable	= true,
 				hotkeys	= {'rc'},
-			},
-			{	name	= "Carrion Swarm",
-				enable	= false,
-				hotkeys	= {},
 			},
 			{	name	= "Doomguard",
 				enable	= true,

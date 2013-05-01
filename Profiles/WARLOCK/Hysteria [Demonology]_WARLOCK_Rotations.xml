@@ -1,51 +1,51 @@
-<?xml version="1.0" encoding="utf-8" ?><WARLOCK><Options><ProfileVersion>1.4</ProfileVersion><AbilityURL>https://raw.github.com/mentallys-hysteria/Warlock/master/Profiles/WARLOCK/Hysteria%20%5BDemonology%5D_WARLOCK_Abilities.xml</AbilityURL><RotationURL>https://raw.github.com/mentallys-hysteria/Warlock/master/Profiles/WARLOCK/Hysteria%20%5BDemonology%5D_WARLOCK_Rotations.xml</RotationURL><LuaURL>https://raw.github.com/mentallys-hysteria/Warlock/master/Data/PQR_Hysteria_Data.lua</LuaURL><LegacyMode>True</LegacyMode></Options><Rotation><RotationName>Standard Profile</RotationName><RotationDefault>false</RotationDefault><RotationList>[Misc] Initialization|[Misc] Pet Management|[Misc] Pause Rotation|[Support] Automatic Buffing|[Misc] Instance: Combat Detection|Curse of the Elements|[Support] Alchemy: Lifeblood|[Support] Potion Usage|[Support] Racials|[Support] Frag Belt|[Support] Dark Soul: Knowledge|[Pet] Grimoire of Service|[Pet] Command Demon|[Support] Doomguard|[Support] Dark Regeneration|[Support] Imp Swarm|[Support] Soulshatter|[Support] Healthstone|[Support] Automatic Mortal Coil|[Support] Level 30 Talent|[Support] Level 45 Talent|[Support] Level 90 Talent|Metamorphosis: Doom|Metamorphosis: Cancel|Metamorphosis: Doom (Mouseover)|Metamorphosis: Soul Fire|Metamorphosis: Touch of Chaos|Metamorphosis|Hand of Gul&amp;apos;Dan|Corruption|Corruption (Focus)|Corruption (Mouseover)|Soul Fire|[Support] Life Tap|Shadowbolt|Fel Flame</RotationList><RequireCombat>false</RequireCombat><RotationNotes>All new!
-Automatic Single-Target Demonology Warlock rotation based upon personal experience and SimulationCraft - Ready for 5.2!
+<?xml version="1.0" encoding="utf-8" ?><WARLOCK><Options><ProfileVersion>2.0</ProfileVersion><AbilityURL>https://raw.github.com/mentallys-hysteria/Warlock/master/Profiles/WARLOCK/Hysteria%20%5BDemonology%5D_WARLOCK_Abilities.xml</AbilityURL><RotationURL>https://raw.github.com/mentallys-hysteria/Warlock/master/Profiles/WARLOCK/Hysteria%20%5BDemonology%5D_WARLOCK_Rotations.xml</RotationURL><LuaURL>https://raw.github.com/mentallys-hysteria/Warlock/master/Data/PQR_Hysteria_Data.lua</LuaURL><LegacyMode>True</LegacyMode></Options><Rotation><RotationName>AoE</RotationName><RotationDefault>false</RotationDefault><RotationList>[Misc] Initialization|[Misc] Pause Rotation|[Misc] Pet Management|[Misc] Automatic Buffing|[Misc] Instanced Combat Detection|[Support] Auto Potion (Heroism)|[Support] Herbalism: Lifeblood|[Support] Racials|[Support] Dark Soul: Knowledge|[Support] Glyph of Imp Swarm|[Support] Grimoire of Service|[Support] Command Demon|[Support] Doomguard|[Support] Soulstone|[Support] Healthstone|[Support] Level 30 Talent|[Support] Level 45 Talent|[Support] Level 90 Talent|[Support] Dark Regeneration|[Support] Automatic Mortal Coil|Metamorphosis: Cancel|Metamorphosis: Immolation Aura|Metamorphosis: Aura of the Elements|Metamorphosis: Doom (Boss)|Metamorphosis: Doom|Metamorphosis: Doom (Focus)|Metamorphosis: Doom (Mouseover)|Metamorphosis: Void Ray|Metamorphosis: Harvest Life|Metamorphosis|Curse of the Elements|Hand of Gul&amp;apos;dan|Corruption (Boss)|Corruption|Corruption (Focus)|Corruption (Mouseover)|Life Tap|Hellfire</RotationList><RequireCombat>false</RequireCombat><RotationNotes>All new Demonology Warlock Profile. Re-written from the ground up to support the immensive playstyle of the Warlock.
+Ready for 5.2 and beyond!
 
-With the new advanced Metamorphosis weaving, the profile now automatically adapts to strong procs and buffs and plans accordingly! :D
-
-Support:
-- Comprehensive in-game rotation configuration via PQInterface
-
-- Automatic Soulstoning of Tank/Healer targets
-- Automatic Healthstone at set percentages
-- Automatic Dark Regeneration at set percentages
-- Automatic usage of Racials
-- Automatic usage of Potions during Heroism
-.. and much, much more! Requires PQInterface v2.0+ for user customization.
-
-Dark Apotheosis support coming soon!
-
-Keybindings:
-- Left Alt: Doomguard
-- Left Shift: Dark Soul Knowledge
-- Left Control + Left Alt: Level 30 Talent of choice
-
-- Right Alt: Pause Rotation
-- Right Shift: Level 45 Talent of choice
-- Right Control: Level 90 Talent of choice
-- Right Alt + Right Shift: Toggle Cooldown Mode</RotationNotes></Rotation><Rotation><RotationName>AoE Profile</RotationName><RotationDefault>false</RotationDefault><RotationList>[Misc] Initialization|[Misc] Pet Management|[Misc] Pause Rotation|[Support] Automatic Buffing|[Misc] Instance: Combat Detection|Curse of the Elements|[Support] Alchemy: Lifeblood|[Support] Potion Usage|[Support] Racials|[Support] Frag Belt|[Support] Dark Soul: Knowledge|[Pet] Grimoire of Service|[Pet] Command Demon|[Support] Doomguard|[Support] Dark Regeneration|[Support] Imp Swarm|[Support] Soulshatter|[Support] Healthstone|[Support] Level 30 Talent|[Support] Level 45 Talent|[Support] Level 90 Talent|Metamorphosis: Doom|Metamorphosis: Cancel|Metamorphosis: Immolation Aura|Metamorphosis: Aura of the Elements|Metamorphosis: Doom (Mouseover)|Metamorphosis: Harvest Life|Metamorphosis: Void Ray|Metamorphosis|Corruption|Corruption (Focus)|Corruption (Mouseover)|Hand of Gul&amp;apos;Dan|[Support] Life Tap|Harvest Life|Hellfire</RotationList><RequireCombat>false</RequireCombat><RotationNotes>All new!
-Automatic AoE Demonology Warlock rotation based upon personal experience and SimulationCraft - Ready for 5.2!
-
-With the new advanced Metamorphosis weaving, the profile now automatically adapts to strong procs and buffs and plans accordingly! :D
+Comes ready with a Single-target Cleave and a AoE profile for all your damaging needs.
 
 Support:
-- Comprehensive in-game rotation configuration via PQInterface
-
-- Automatic Soulstoning of Tank/Healer targets
-- Automatic Healthstone at set percentages
-- Automatic Dark Regeneration at set percentages
-- Automatic usage of Racials
-- Automatic usage of Potions during Heroism
-.. and much, much more! Requires PQInterface v2.0+ for user customization.
-
-Dark Apotheosis support coming soon!
+- Automatic Soulstoning of Tanks and Healers (Will require assigned roles for the moment)
+- Automatic Buffing
+- Fully automated Pet Management
+- Automatic Dark Regeneration
+- Toggle between manual or automatic Mortal Coil usage
+- Automatic Boss dotting
+- Automatic Focus dotting
+- Automatic Mouseover dotting
+.. and much much more!
 
 Keybindings:
-- Left Alt: Doomguard
-- Left Shift: Dark Soul Knowledge
-- Left Control + Left Alt: Level 30 Talent of choice
+- Pause Rotation: Right Alt
+- Toggle Cooldown Mode: Right Alt + Right Control
+- Dark Soul: Left Shift
+- Level 30 Talent: Left Control + Left Alt
+- Level 45 Talent: Right Shift
+- Level 90 Talent: Right Control
+- Doomguard / Infernal
 
-- Right Alt: Pause Rotation
-- Right Shift: Level 45 Talent of choice
-- Right Control: Level 90 Talent of choice
-- Right Alt + Right Shift: Toggle Cooldown Mode</RotationNotes></Rotation></WARLOCK>
+Everything is completely configurable in-game for the ultimate custom play experience!</RotationNotes></Rotation><Rotation><RotationName>Standard</RotationName><RotationDefault>false</RotationDefault><RotationList>[Misc] Initialization|[Misc] Pause Rotation|[Misc] Pet Management|[Misc] Automatic Buffing|[Misc] Instanced Combat Detection|[Support] Auto Potion (Heroism)|[Support] Herbalism: Lifeblood|[Support] Racials|[Support] Dark Soul: Knowledge|[Support] Glyph of Imp Swarm|[Support] Grimoire of Service|[Support] Command Demon|[Support] Doomguard|[Support] Soulstone|[Support] Healthstone|[Support] Level 30 Talent|[Support] Level 45 Talent|[Support] Level 90 Talent|[Support] Dark Regeneration|[Support] Automatic Mortal Coil|Metamorphosis: Cancel|Metamorphosis: Doom (Boss)|Metamorphosis: Doom|Metamorphosis: Doom (Focus)|Metamorphosis: Doom (Mouseover)|Metamorphosis: Soul Fire|Metamorphosis: Touch of Chaos|Metamorphosis|Curse of the Elements|Hand of Gul&amp;apos;dan|Corruption (Boss)|Corruption|Corruption (Focus)|Corruption (Mouseover)|Soul Fire|Life Tap|Shadowbolt|Fel Flame</RotationList><RequireCombat>false</RequireCombat><RotationNotes>All new Demonology Warlock Profile. Re-written from the ground up to support the immensive playstyle of the Warlock.
+Ready for 5.2 and beyond!
+
+Comes ready with a Single-target Cleave and a AoE profile for all your damaging needs.
+
+Support:
+- Automatic Soulstoning of Tanks and Healers (Will require assigned roles for the moment)
+- Automatic Buffing
+- Fully automated Pet Management
+- Automatic Dark Regeneration
+- Toggle between manual or automatic Mortal Coil usage
+- Automatic Boss dotting
+- Automatic Focus dotting
+- Automatic Mouseover dotting
+.. and much much more!
+
+Keybindings:
+- Pause Rotation: Right Alt
+- Toggle Cooldown Mode: Right Alt + Right Control
+- Dark Soul: Left Shift
+- Level 30 Talent: Left Control + Left Alt
+- Level 45 Talent: Right Shift
+- Level 90 Talent: Right Control
+- Doomguard / Infernal
+
+Everything is completely configurable in-game for the ultimate custom play experience!</RotationNotes></Rotation></WARLOCK>
