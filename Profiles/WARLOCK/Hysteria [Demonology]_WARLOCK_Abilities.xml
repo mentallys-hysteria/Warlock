@@ -123,7 +123,7 @@ if not PQ_DemoWarlockLoaded then
 	
 	PQ_DemoWarlockLoaded = true
 	PQR_WriteToChat(&amp;quot;|cff91e782Hysteria Demonology Warlock data is |cff82cee7Loaded!|cffffffff&amp;quot;)
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Hand of Gul&amp;apos;dan</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_GulDan = PQ_GulDan
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Hand of Gul&amp;apos;dan</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_GulDan = PQ_GulDan
 local PQ_SFlame = PQ_SFlame
 local Shadowflame = select(7,UnitDebuffID(&amp;quot;target&amp;quot;,PQ_SFlame,&amp;quot;PLAYER&amp;quot;))
 local ShadowflameCD = select(3,GetSpellCharges(PQ_GulDan)) + select(4,GetSpellCharges(PQ_GulDan)) - GetTime()
@@ -153,7 +153,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_GulDan) and PQR_SpellAvailable
 			CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
 			return true
 		end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Corruption</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Corruption</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
 local isMindControledUnit = isMindControledUnit
 
 -- No unwanted Metamorphosis access
@@ -302,7 +302,7 @@ else
 		CastSpellByName(GetSpellInfo(PQ_Meta),&amp;quot;player&amp;quot;)
 		return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Shadowbolt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_ShadowBolt = PQ_ShadowBolt
+end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Shadowbolt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_ShadowBolt = PQ_ShadowBolt
 local TargetValidation = TargetValidation
 
 -- Cancel on Metamorphosis
@@ -774,12 +774,15 @@ local Cor,_,_,_,_,_,CorTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Cor,&a
 -- Don&amp;apos;t enter while in Caster form.
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 
+-- When UVLS procs, don&amp;apos;t cast at all
+if UnitBuffID(&amp;quot;player&amp;quot;,138963) then return false end
+
 -- Don&amp;apos;t cast if we&amp;apos;re moving without KJC.
 if not KilJaeden then
 	if PQR_IsMoving(0.3) then return false end
 end
 
--- Don&amp;apos;t cast if it&amp;apos;s an important unit
+-- Don&amp;apos;t cast if it&amp;apos;s not an important unit
 if not SpecialUnit() then return false end
 
 -- If we don&amp;apos;t have Molten Core procs, don&amp;apos;t bother....
