@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?><WARLOCK><Ability><Name>[Misc] Initialization</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-------------------------------------------------------------------------------
 -- Variables &amp; Sanity checks
 -------------------------------------------------------------------------------
+-- PQInterface is an absolute requirement from now on.
+if not IsAddOnLoaded(&amp;quot;PQInterface&amp;quot;) then
+	PQR_WriteToChat(&amp;quot;|cffDC143CPQInterface is required to run this profile!|cffffffff&amp;quot;, &amp;quot;Warning&amp;quot;)
+	PQR_WriteToChat(&amp;quot;|cffDC143CThe profile has been stopped.|cffffffff&amp;quot;, &amp;quot;Warning&amp;quot;)
+	PQR_StopRotation()
+end
+
 -- Load LUA data files.
 if PQR_RotationStarted then
 	PQR_RotationStarted = false
@@ -871,9 +878,6 @@ local PQ_SF = PQ_SF
 local PQ_HOT = PQ_HOT
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 
--- Disable if Automatic Mode is enabled
-if PQI_MentallyDemo_MortalCoil_enable then return false end
-
 -- Disabled in PQI
 if not PQI_MentallyDemo_Level30Talent_enable then return false end
 
@@ -886,6 +890,7 @@ then CastSpellByName(GetSpellInfo(PQ_HOT),nil) return true end
 
 -- Mortal Coil
 if IsPlayerSpell(PQ_MC)
+	and not PQI_MentallyDemo_MortalCoil_enable
 	and PQR_SpellAvailable(PQ_MC)
 	and not GetCurrentKeyBoardFocus()
 	and PQI:IsHotkeys(PQI_MentallyDemo_Level30Talent_key)
@@ -897,7 +902,6 @@ if IsPlayerSpell(PQ_SF)
 	and not GetCurrentKeyBoardFocus()
 	and PQI:IsHotkeys(PQI_MentallyDemo_Level30Talent_key)
 then
-	SpellCancelQueuedSpell()
 	CastSpellByID(PQ_SF)
 	if SpellIsTargeting() then SpellCancelQueuedSpell() CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end
 	return true
