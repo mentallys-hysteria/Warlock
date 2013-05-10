@@ -1,12 +1,12 @@
 ------------------------------------------------------------
 -- Functions & Variables
 ------------------------
-Version = 1.9
-Minor = 9
+Version = 2
+Minor = 0
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 5/4/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 5/10/2013|cffffffff")
 end
 
 -- Aura Info function.
@@ -1177,6 +1177,11 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 				enable	= true,
 			},
 			{ 	name	= "Auto Grimoire",
+				tooltip	= "Will let the profile handle your selected Grimoire best possible.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Carrion Swarm",
+				tooltip	= "Enables the use of Carrion Swarm when added to the profile.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Boss Dotting",
@@ -1226,6 +1231,18 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 					},
 					width	= 100,
 					tooltip	= "Select the pet you want to have summoned for Grimoire of Service.",
+				},
+			},
+			{ 	name	= "AoE Selection",
+				tooltip	= "Select if you want the profile to cast Hand of Gul'dan or Chaos Wave during AoE mode.",
+				enable	= true,
+				widget	= { type = "select",
+					values	= {
+						"Chaos Wave",
+						"Hand of Gul'dan",
+					},
+					width	= 100,
+					tooltip	= "Decide on functionality of high burst AoE (Chaos Wave) or longer maintained AoE (Hand of Gul'dan).",
 				},
 			},
 		},
@@ -1287,6 +1304,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_Shatter		= 29858		-- Soulshatter
 	PQ_Soulstone	= 20707		-- Soulstone
 	PQ_Swarm		= 103967	-- Carrion Swarm
+	PQ_ChaosWave	= 124916	-- Chaos Wave
 	
 	-- Cooldowns
 	PQ_DSM			= 113860	-- Dark Soul: Misery
