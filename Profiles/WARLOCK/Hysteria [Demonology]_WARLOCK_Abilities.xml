@@ -870,7 +870,15 @@ if itemCheck(warlockT15) &amp;gt;= 2 and fury &amp;gt; 250 then
 		CastSpellByName(GetSpellInfo(PQ_SoulFire),&amp;quot;target&amp;quot;)
 		return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Frag Belt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local Belt = GetInventoryItemID(&amp;quot;player&amp;quot;, 6)
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Frag Belt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-- If we don&amp;apos;t know Engineering. Don&amp;apos;t activate.
+for i=1,9 do
+	if select(7,GetProfessionInfo(i)) == 202 then hasEngi = true end
+end
+
+-- Don&amp;apos;t have Engineering.
+if not hasEngi then return false end
+
+local Belt = GetInventoryItemID(&amp;quot;player&amp;quot;, 6)
 
 -- Don&amp;apos;t use it in Caster form
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
@@ -1377,6 +1385,14 @@ local PQ_SoulFire = PQ_SoulFire
 local TargetValidation = TargetValidation
 local Gloves = GetInventoryItemID(&amp;quot;player&amp;quot;, 10)
 local DSCD = GetSpellCooldown(PQ_DSK) + select(2,GetSpellCooldown(PQ_DSK)) - GetTime()
+
+-- If we don&amp;apos;t know Engineering. Don&amp;apos;t activate.
+for i=1,9 do
+	if select(7,GetProfessionInfo(i)) == 202 then hasEngi = true end
+end
+
+-- Don&amp;apos;t have Engineering.
+if not hasEngi then return false end
 
 -- Don&amp;apos;t use outside of Combat
 if not UnitAffectingCombat(&amp;quot;player&amp;quot;) then return false end

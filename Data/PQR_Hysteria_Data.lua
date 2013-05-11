@@ -1,12 +1,12 @@
 ------------------------------------------------------------
 -- Functions & Variables
 ------------------------
-Version = 2
-Minor = 0
+Version = 2.0
+Minor = 1
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 5/10/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 5/11/2013|cffffffff")
 end
 
 -- Aura Info function.
