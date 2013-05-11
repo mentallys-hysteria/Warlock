@@ -763,10 +763,6 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 				tooltip	= "Cast DoTs on Focus.",
 				enable	= true,
 			},
-			{ 	name	= "Auto Boss Dotting",
-				tooltip	= "Cast DoTs on Boss Target Frames.",
-				enable	= true,
-			},
 		},
 		hotkeys		= {
 			{	name	= "Pause Rotation",
