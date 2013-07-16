@@ -22,7 +22,11 @@ buffs = {
 }
 
 -- Trinket Proc list
-buffList = {104423,128985,33702,126577,126659,126478,136082,126605,126476,136089,138898,139133,138786,138703,137590}
+buffList = {104423, 104509, 104510, 128985, 33702, 126577, 126659, 126478, 136082, 126605, 126476, 136089, 138898, 139133, 138786, 138703, 137590, 26297, 32182, 90355, 80353, 2825, 104993, 105702}
+critProcs = {104509, 126605, 126476}
+hasteProcs = {104423, 126659, 136089, 138703, 137590, 26297, 32182, 90355, 80353, 2825}
+masteryProcs = {104510}
+intellectProcs = {128985, 126577, 126478, 136082, 138898, 139133, 138786, 104993, 105702, 33702, 126734, 125487}
 
 -- Doom no-dot List
 disableDoomList = {69556,69553,69548,69492,69491,69480,69153,60885,68192,69050,70579,69069,69172,69184,69168,69013,69133,69462,63873,69232}
@@ -414,10 +418,12 @@ function HysteriaFrame_OnEvent(self,event,...)
 		local source		= select(5, ...)
 		local destGUID		= select(8, ...)
 		local destination	= select(9, ...)
+		local spellID		= select(12, ...)
 		local spell			= select(13, ...)
 		local damage		= select(15, ...)
 		local critical		= select(21, ...)
 		local buffList = buffList
+		local intellectProcs = intellectProcs
 		local doom_tick_every = PQ_Round(15/(1+(UnitSpellHaste("player")/100)),2)
 		
 		if subEvent == "UNIT_DIED" then
@@ -514,6 +520,13 @@ function HysteriaFrame_OnEvent(self,event,...)
 						Trinket = Trinket - 1
 					end
 				end
+				
+				-- Look for intellect procs
+				for i=1,#intellectProcs do
+					if spell == GetSpellInfo(intellectProcs[i]) then
+						intProcs = intProcs - 1
+					end
+				end
 			end
 		end
 		
@@ -540,6 +553,13 @@ function HysteriaFrame_OnEvent(self,event,...)
 				for i=1,#buffList do
 					if spell == GetSpellInfo(buffList[i]) then
 						Trinket = Trinket + 1
+					end
+				end
+				
+				-- Look for intellect procs
+				for i=1,#intellectProcs do
+					if spell == GetSpellInfo(intellectProcs[i]) then
+						intProcs = intProcs + 1
 					end
 				end
 			end
@@ -584,7 +604,7 @@ function Hysteria_CastCheck(spell, buff)
 		if select(7,GetSpellInfo(spell)) == 0 then return true end
 		
 		-- Check the cast time
-		if buffTime - GetTime() > PQ_Round(select(7,GetSpellInfo(spell))/1000,2) then return true
+		if buffTime - GetTime() > PQ_Round(select(7,GetSpellInfo(spell))/1000,2) + 1 then return true
 			else return false end
 	end
 	return false
@@ -859,20 +879,6 @@ end
 -- Target Validation Function
 TargetValidation = nil
 function TargetValidation(unit, spell)
-	-- Let's try and detect immunities
-	if UnitBuffID(unit,116994) or UnitBuffID(unit,122540) or UnitBuffID(unit,123250) or UnitBuffID(unit,106062) or UnitBuffID(unit,110945)
-		then return false end
-	
-	-- Cancel spell casts or channels on silences
-	if UnitCastingInfo(unit) == GetSpellInfo(138763) or UnitCastingInfo(unit) == GetSpellInfo(138763) then
-		if UnitCastingInfo("player") or UnitChannelInfo("player") then RunMacroText("/stopcasting") return false end
-		return false
-	end
-	
-	-- Heroic: Twin Consorts (Immune while channeling Nuclear Inferno and Tidal Force)
-	if UnitChannelInfo(unit) == GetSpellInfo(137531) or UnitChannelInfo(unit) == GetSpellInfo(137491) or UnitCastingInfo(unit) == GetSpellInfo(138763) or UnitCastingInfo(unit) == GetSpellInfo(138763)
-		then return false end
-	
 	if UnitExists(unit)
 		and IsPlayerSpell(spell)
 		and UnitCanAttack("player", unit) == 1
@@ -1413,7 +1419,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			{ 	name	= "Healthstone",
 				tooltip = "When enabled; Allows you to control automatic usage of healthstone at set health %.",
 				enable	= true,
-				widget	= { type = "numBox",
+				widget	= {	type = "numBox",
 					tooltip = "Set the health % value you want Healthstone to be used at.",
 					value	= 50,
 					step	= 5,
@@ -1473,17 +1479,39 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 					step	= 5,
 				},
 			},
-			{ 	name	= "Raid Buffing",
-				tooltip = "When enabled; Will automatically try to buff your raid or party.",
+			{ 	name	= "Symbiosis",
+				tooltip = "When enabled; Allows you to control when and how the profile casts Symbiosis on you and your pet.",
 				enable	= true,
+				widget	= { type = "numBox",
+					tooltip = "Set the health % value you want Symbiosis to be cast at.",
+					value	= 25,
+					step	= 5,
+				},
+			},
+			{ 	name	= "Unending Resolve",
+				tooltip = "When enabled; Allows you to control at which health percentage the profile casts Unending Resolve on you.",
+				enable	= true,
+				widget	= { type = "numBox",
+					tooltip = "Set the health % value you want Unending Resolve to be cast at.",
+					value	= 35,
+					step	= 5,
+				},
 			},
 			{ 	name	= "Raid Buffing",
 				tooltip = "When enabled; Will automatically try to buff your raid or party.",
 				enable	= true,
+			},
+			{ 	name	= "Threatening Presence",
+				tooltip = "When enabled; Will Enable or Disable your Pet's Threatening Presence.",
+				enable	= false,
 			},
 		},
 		hotkeys = {
 			{	name	= "Pause Rotation",
+				enable	= false,
+				hotkeys	= {},
+			},
+			{	name	= "Unending Resolve",
 				enable	= false,
 				hotkeys	= {},
 			},
@@ -1516,6 +1544,20 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			{ 	name	= "Combat Detection",
 			    tooltip = "Toggle the profile to pause automatically when not engaged in combat.",
 				enable	= true,
+			},
+			{ 	name	= "Spell Queue Type",
+			    tooltip = "This setting allows you to enable and set how you want Spell Queue overriding to work. It will either queue up the spell on the next GCD when you mouseover or click the ability.",
+				enable	= true,
+				newSection  = true,
+				widget	= { type = "select",
+					tooltip = "Select how you want to queue the next spell.",
+					values	= {
+						"Click",
+						"Mouseover",
+						"Command",
+					},
+					width	= 80,
+				},
 			},
 			{ 	name	= "Auto Potion",
 			    tooltip = "Toggle the use of Potion of the Jade Serpent under the effects of Bloodlust/Heroism/Time Warp/Ancient Hysteria.",
@@ -1624,6 +1666,11 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 				enable	= false,
 				hotkeys	= {},
 			},
+			{	name	= "Toggle Force Meta",
+			    tooltip = "Select the keybind for the usage of forcing Metamorphosis.",
+				enable	= false,
+				hotkeys	= {},
+			},
 			{	name	= "Toggle Omni Cleave",
 			    tooltip = "Select the keybind for toggling the Omni Rotation's Cleave rotation.",
 				enable	= false,
@@ -1662,6 +1709,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_ImmoAura		= 104025	-- Metamorphosis: Immolation Aura
 	PQ_GulDan		= 105174	-- Hand of Gul'dan
 	PQ_ChaosWave	= 124916	-- Chaos Wave
+	PQ_TW			= 6229		-- Twilight Ward
 	
 	-- Available to all Specs
 	PQ_DL			= 689		-- Drain Life
@@ -1669,6 +1717,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_Soulstone	= 20707		-- Soulstone
 	PQ_Shatter		= 29858		-- Soulshatter
 	PQ_FelFlame		= 77799		-- Fel Flame
+	PQ_Symbiosis	= 113295	-- Symbiosis: Rejuvenation
 	
 	-- Destruction
 	PQ_IM			= 348		-- Immolate
@@ -1717,6 +1766,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_Soul			= 108415	-- Soul Link
 	PQ_SP			= 108416	-- Sacrificial Pact
 	PQ_DB			= 110913	-- Dark Bargain
+	PQ_DBD			= 110913	-- Dark Bargain DOT
 	PQ_BF			= 111397	-- Blood Fear
 	PQ_BR			= 111400	-- Burning Rush
 	PQ_UW			= 108482	-- Unbound Will
