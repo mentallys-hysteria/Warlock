@@ -1,12 +1,12 @@
 ------------------------------------------------------------
 -- Functions & Variables
 ------------------------
-Version = 2.0
-Minor = 1
+Version = 2.1
+Minor = 3
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 5/11/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 7/16/2013|cffffffff")
 end
 
 -- Aura Info function.
@@ -22,7 +22,7 @@ buffs = {
 }
 
 -- Trinket Proc list
-buffList = {104423, 104509, 104510, 128985, 33702, 126577, 126659, 126478, 136082, 126605, 126476, 136089, 138898, 139133, 138786, 138703, 137590, 26297, 32182, 90355, 80353, 2825, 104993, 105702}
+buffList = {104423, 104509, 104510, 128985, 33702, 126577, 126659, 126478, 125487, 136082, 126605, 126734, 126476, 136089, 138898, 139133, 138786, 138703, 137590, 26297, 32182, 90355, 80353, 2825, 104993, 105702}
 critProcs = {104509, 126605, 126476}
 hasteProcs = {104423, 126659, 136089, 138703, 137590, 26297, 32182, 90355, 80353, 2825}
 masteryProcs = {104510}
@@ -350,7 +350,6 @@ function disableDoom(unit)
 		return false
 	end
 end
-	
 
 -- Unit Information Function
 Hysteria_UnitInfo = nil
@@ -376,11 +375,11 @@ function Hysteria_UnitInfo(t)
 	elseif PQ_Class == "PRIEST" then myClassPower = UnitPower("player", 13)
 	elseif PQ_Class == "WARLOCK" then
 		if PQ_Spec == 3 then
-			myClassPower = UnitPower("player", 14)	-- Destruction: Burning Embers
+			myClassPower = UnitPower("player", 14)	-- Destruction: Burning Ember
 		elseif PQ_Spec == 2 then
 			myClassPower = UnitPower("player", 15)	-- Demonology: Demonic Fury
 		elseif PQ_Spec == 1 then
-			myClassPower = UnitPower("player", 7)	-- Affliction: Soul Shards
+			myClassPower = UnitPower("player", 7)	-- Affliction: Soul Shard
 		end
 	elseif PQ_Class == "DRUID" and PQ_Class == 2 then myClassPower = UnitPower("player", 8)
 	elseif PQ_Class == "MONK"  then myClassPower = UnitPower("player", 12)
@@ -391,17 +390,21 @@ end
 
 -- Combat log event reader
 function HysteriaFrame_OnEvent(self,event,...)
+	-- We started a channel, update counters
 	if event == "UNIT_SPELLCAST_CHANNEL_START" then
-		if UnitChannelInfo("player") == GetSpellInfo(15407) then
+		-- Mind Flay counter
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) then
 			flayTicks = 0
 			maxFlayTicks = 3
 		end
-		if UnitChannelInfo("player") == GetSpellInfo(129197) then
+		-- Mind Flay (Insanity) counter
+		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) then
 			insanityTicks = 0
 			maxInsanityTicks = 3
 		end
 	end
 	
+	-- We stopped a channel, reset counters.
 	if event == "UNIT_SPELLCAST_CHANNEL_STOP" then
 		flayTicks = 0
 		insanityTicks = 0
@@ -409,6 +412,7 @@ function HysteriaFrame_OnEvent(self,event,...)
 		maxInsanityTicks = 3
 	end
 	
+	-- Clear the DOT tracker whenever we leave or enter combat!
 	if event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
 		if #dotTracker > 0 then dotTracker = {} end
 	end
@@ -422,10 +426,9 @@ function HysteriaFrame_OnEvent(self,event,...)
 		local spell			= select(13, ...)
 		local damage		= select(15, ...)
 		local critical		= select(21, ...)
-		local buffList = buffList
-		local intellectProcs = intellectProcs
 		local doom_tick_every = PQ_Round(15/(1+(UnitSpellHaste("player")/100)),2)
 		
+		-- Unit Death events
 		if subEvent == "UNIT_DIED" then
 			-- A unit has died, is it in our tracker?
 			if #dotTracker > 0 then
@@ -435,62 +438,55 @@ function HysteriaFrame_OnEvent(self,event,...)
 			end
 		end
 		
-		if subEvent == "SPELL_CAST_SUCCESS" then
-			-- Tortos: Rockfall Timer
-			if UnitName("boss1") == source and spell == GetSpellInfo(134476) then Rockfall = GetTime() end
-		end
+		-- Successfull Spell Casts
+		if subEvent == "SPELL_CAST_START" then end
 		
+		-- Periodic Damage Events
 		if subEvent == "SPELL_PERIODIC_DAMAGE" then
 			-- Catch Ignite
 			if UnitName("player") == source and destination == UnitName("target") then
-				if spell == GetSpellInfo(12654) then  
-					IgniteDamage = damage 
-				end
+				if spellID == 12654 then IgniteDamage = damage end
 			end
 			
 			-- Mind Flay
-			if UnitName("player") == source and spell == GetSpellInfo(15407) then flayTicks = flayTicks + 1 end
+			if UnitName("player") == source and spellID == PQ_MF then flayTicks = flayTicks + 1 end
 			-- Mind Flay (Insanity)
-			if UnitName("player") == source and spell == GetSpellInfo(129197) then insanityTicks = insanityTicks + 1 end
+			if UnitName("player") == source and spellID == PQ_MFI then insanityTicks = insanityTicks + 1 end
 		end
 		
+		-- Refreshed Aura Events
 		if subEvent == "SPELL_AURA_REFRESH" then
 			-- Doom was refreshed on an enemy, update our table.
-			if UnitName("player") == source and spell == GetSpellInfo(PQ_Doom) then
+			if UnitName("player") == source and spellID == PQ_Doom then
 				if #dotTracker > 0 then
 					for i=1,#dotTracker do
 						if dotTracker[i].guid == destGUID then
 							dotTracker[i].doomPower = mentallyPower(603)
 							dotTracker[i].doom_tick_every = doom_tick_every
-							
-							if UnitBuffID("player",138963) then
-								dotTracker[i].crit = true
-							else
-								dotTracker[i].crit = false
-							end
+							if UnitBuffID("player",138963) then dotTracker[i].crit = true else dotTracker[i].crit = false end
 						end
 					end
 				end
 			end
 			
 			-- Mind Flay
-			if UnitName("player") == source and spell == GetSpellInfo(15407) then
+			if UnitName("player") == source and spellID == PQ_MF then
 				flayTicks = 0
 				maxFlayTicks = 4
 			end
 			
 			-- Mind Flay (Insanity)
-			if UnitName("player") == source and spell == GetSpellInfo(129197) then
+			if UnitName("player") == source and spellID == PQ_MFI then
 				insanityTicks = 0
 				maxInsanityTicks = 4
 			end
 		end
 		
-		-- Removed aura events
+		-- Removed Aura Events
 		if subEvent == "SPELL_AURA_REMOVED" then
 			if UnitName("player") == source then
 				-- Doom fell of a unit, remove unit from tracker.
-				if spell == GetSpellInfo(PQ_Doom) then
+				if spellID == PQ_Doom then
 					if #dotTracker > 0 then
 						for i=1,#dotTracker do
 							if dotTracker[i].guid == destGUID then tremove(dotTracker, i) return true end
@@ -499,42 +495,24 @@ function HysteriaFrame_OnEvent(self,event,...)
 				end
 				
 				-- Ignite fell off a unit
-				if spell == GetSpellInfo(12654) then  
-					IgniteDamage = 0 
-				end
+				if spellID == 12654 then IgniteDamage = 0 end
 				
 				-- Mind Flay
-				if spell == GetSpellInfo(15407) then flayTicks = 0 maxFlayTicks = 3 end
+				if spellID == PQ_MF then flayTicks = 0 maxFlayTicks = 3 end
 				
 				-- Mind Flay (Insanity)
-				if spell == GetSpellInfo(129197) then insanityTicks = 0 maxInsanityTicks = 3 end
+				if spellID == PQ_MFI then insanityTicks = 0 maxInsanityTicks = 3 end
 				
 				-- Living Bomb fell off a target
-				if spell == GetSpellInfo(44457) then
-					LivingBomb = LivingBomb - 1
-				end
-				
-				-- A proc or temporary buff fell off us
-				for i=1,#buffList do
-					if spell == GetSpellInfo(buffList[i]) then
-						Trinket = Trinket - 1
-					end
-				end
-				
-				-- Look for intellect procs
-				for i=1,#intellectProcs do
-					if spell == GetSpellInfo(intellectProcs[i]) then
-						intProcs = intProcs - 1
-					end
-				end
+				if spellID == PQ_LB then LivingBomb = LivingBomb - 1 end
 			end
 		end
 		
-		-- Applied aura events
+		-- Applied Aura Events
 		if subEvent == "SPELL_AURA_APPLIED" then
 			if UnitName("player") == source then
 				-- Doom applied to a unit, add unit to tracker
-				if spell == GetSpellInfo(PQ_Doom) then
+				if spellID == PQ_Doom then
 					for i=1,#dotTracker do if dotTracker[i].guid == destGUID then return false end end
 					
 					if UnitBuffID("player",138963) then
@@ -545,23 +523,7 @@ function HysteriaFrame_OnEvent(self,event,...)
 				end
 				
 				-- Living Bomb applied to any target
-				if spell == GetSpellInfo(44457) then
-					LivingBomb = LivingBomb + 1
-				end
-				
-				-- A proc or temporary buff applied on us
-				for i=1,#buffList do
-					if spell == GetSpellInfo(buffList[i]) then
-						Trinket = Trinket + 1
-					end
-				end
-				
-				-- Look for intellect procs
-				for i=1,#intellectProcs do
-					if spell == GetSpellInfo(intellectProcs[i]) then
-						intProcs = intProcs + 1
-					end
-				end
+				if spellID == PQ_LB then LivingBomb = LivingBomb + 1 end
 			end
 		end
 		
@@ -569,20 +531,17 @@ function HysteriaFrame_OnEvent(self,event,...)
 		if subEvent == "SPELL_DAMAGE" then
 			if UnitName("player") == source and destination == UnitName("target") then
 				-- Pyroblast
-				if spell == GetSpellInfo(PQ_Pyro) then
+				if spellID == PQ_Pyro then
 					PyroDamage = damage
 					if critical == 1 then pyroCrit = 1 else pyroCrit = 0 end
 				end
 				-- Fireball
-				if spell == GetSpellInfo(PQ_Fireball) then
+				if spellID == PQ_Fireball then
 					FireballDamage = damage
 					if critical == 1 then fireballCrit = 1 else fireballCrit = 0 end
 				end
-				-- Inferno Blast
-				if spell == GetSpellInfo(PQ_IBlast) then
-					InfernoDamage = damage
-					if critical == 1 then infernoCrit = 1 else infernoCrit = 0 end
-				end
+				-- Inferno Blast (Always a critical)
+				if spellID == PQ_IBlast then InfernoDamage = damage end
 			end
 		end
 	end
@@ -629,7 +588,7 @@ function Hysteria_CooldownCast(spell, cooldown)
 		if select(7,GetSpellInfo(spell)) == 0 then return true end
 		
 		-- Check the cast time
-		if spellCD > PQ_Round(select(7,GetSpellInfo(spell))/1000,2) then return true
+		if spellCD > PQ_Round(select(7,GetSpellInfo(spell))/1000,2) + 1 then return true
 			else return false end
 	end
 	return false
@@ -658,9 +617,7 @@ itemCheck = nil
 function itemCheck(tbl)
 	local itemCount = 0
 	for i=1,#tbl do
-		if IsEquippedItem(tbl[i]) then
-			itemCount = itemCount + 1
-		end
+		if IsEquippedItem(tbl[i]) then itemCount = itemCount + 1 end
 	end
 	return itemCount
 end
@@ -904,73 +861,7 @@ end
 ------------------------------------------------------------
 -- Class Configurations
 ------------------------
-if select(2, UnitClass("player")) == "DRUID" then
-	PQR_WriteToChat("|cffFFBE69Loading |cffC27C0CDruid|cffFFBE69 Tables ...|cffffffff")
-	
-	-- Balance Skill ID's
-	PQ_InsectSwarm		= 5570		-- Insect Swarm
-	PQ_Moonfire			= 8921		-- Moonfire / Sunfire
-	PQ_Sunfire			= 93402		-- Sunfire
-	PQ_Starsurge		= 78674		-- Starsurge
-	PQ_Wrath			= 5176		-- Wrath
-	PQ_Starfire			= 2912		-- Starfire
-	
-	-- AoE Skill ID's
-	PQ_Hurricane		= 16914		-- Hurricane
-	PQ_Typhoon			= 50516		-- Typhoon
-	PQ_WildMushroom		= 88747		-- Wild Mushroom
-	PQ_Starfall			= 48505 	-- Starfall
-	PQ_SBeam			= 78675		-- Solar Beam
-	PQ_Astorm			= 106996	-- Astral Storm (Channeled)
-	
-	-- DoT ID's
-	PQ_Sunfire			= 93402		-- Sunfire DoT
-	
-	-- Cooldown & Buff ID's
-	PQ_AC				= 127663	-- Astral Communion
-	PQ_CAlign			= 112071	-- Celestial Alignment
-	PQ_WCharge			= 102383	-- Wild Charge
-	PQ_Cenarion			= 102351	-- Cenarion Ward
-	PQ_Innervate		= 29166		-- Innervate
-	PQ_MotW				= 1126		-- Mark of the Wild Skill
-	PQ_Hibernate		= 2637		-- Hibernate
-	PQ_Tranquility		= 740		-- Tranquility
-	PQ_FoN				= 33831		-- Forces of Nature
-	
-	PQ_MoTW2			= 79061		-- Mark of the Wild Buff
-	PQ_Solar			= 48517		-- Solar Eclipse
-	PQ_Lunar			= 48518		-- Lunar Eclipse
-	
-	-- Druid Forms
-	PQ_Moonkin			= 24858		-- Moonkin Form
-	PQ_Moonkin2			= 1020560	-- Incarnation: Chosen of Elune
-	
-	-- Spell Table
-	Hysteria_Spell = {
-		[PQ_InsectSwarm]	= {check = true, known = IsPlayerSpell(PQ_InsectSwarm)},
-		[PQ_Moonfire]		= {check = true, known = IsPlayerSpell(PQ_Moonfire)},
-		[PQ_Starsurge]		= {check = true, known = IsPlayerSpell(PQ_Starsurge)},
-		[PQ_Wrath]			= {check = true, known = IsPlayerSpell(PQ_Wrath)},
-		[PQ_Starfire]		= {check = true, known = IsPlayerSpell(PQ_Starfire)},
-		[PQ_Hurricane]		= {check = true, known = IsPlayerSpell(PQ_Hurricane)},
-		[PQ_Typhoon]		= {check = true, known = IsPlayerSpell(PQ_Typhoon)},
-		[PQ_WildMushroom]	= {check = true, known = IsPlayerSpell(PQ_WildMushroom)},
-		[PQ_Starfall]		= {check = true, known = IsPlayerSpell(PQ_Starfall)},
-		[PQ_SBeam]			= {check = true, known = IsPlayerSpell(PQ_SBeam)},
-		[PQ_Astorm]			= {check = true, known = IsPlayerSpell(PQ_Astorm)},
-		[PQ_AC]				= {check = true, known = IsPlayerSpell(PQ_AC)},
-		[PQ_CAlign]			= {check = true, known = IsPlayerSpell(PQ_CAlign)},
-		[PQ_WCharge]		= {check = true, known = IsPlayerSpell(PQ_WCharge)},
-		[PQ_Cenarion]		= {check = true, known = IsPlayerSpell(PQ_Cenarion)},
-		[PQ_Innervate]		= {check = true, known = IsPlayerSpell(PQ_Innervate)},
-		[PQ_MotW]			= {check = true, known = IsPlayerSpell(PQ_MotW)},
-		[PQ_Hibernate]		= {check = true, known = IsPlayerSpell(PQ_Hibernate)},
-		[PQ_Tranquility]	= {check = true, known = IsPlayerSpell(PQ_Tranquility)},
-		[PQ_FoN]			= {check = true, known = IsPlayerSpell(PQ_FoN)},
-		[PQ_Moonkin]		= {check = true, known = IsPlayerSpell(PQ_Moonkin)},
-		[PQ_Moonkin2]		= {check = true, known = IsPlayerSpell(PQ_Moonkin2)}
-	}
-elseif select(2, UnitClass("player")) == "MAGE" then
+if select(2, UnitClass("player")) == "MAGE" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff69CCF0Mage|cffFFBE69 Tables ...|cffffffff")
 	
 	-- PQInterface Settings
@@ -1147,48 +1038,6 @@ elseif select(2, UnitClass("player")) == "MAGE" then
 	PQ_Invo			= 114003	-- Invocation
 	PQ_RoP			= 116011	-- Rune of Power
 	PQ_Ward			= 1463		-- Incanter's Ward
-	
-	-- Spell Table
-	Hysteria_Spell = {
-		[PQ_GI]			= {check = true, known = IsPlayerSpell(PQ_GI)},
-		[PQ_IW]			= {check = true, known = IsPlayerSpell(PQ_IW)},
-		[PQ_AT]			= {check = true, known = IsPlayerSpell(PQ_AT)},
-		[PQ_IL]			= {check = true, known = IsPlayerSpell(PQ_IL)},
-		[PQ_FO]			= {check = true, known = IsPlayerSpell(PQ_FO)},
-		[PQ_MA]			= {check = true, known = IsPlayerSpell(PQ_MA)},
-		[PQ_LB]			= {check = true, known = IsPlayerSpell(PQ_LB)},
-		[PQ_FS]			= {check = true, known = IsPlayerSpell(PQ_FS)},
-		[PQ_NT]			= {check = true, known = IsPlayerSpell(PQ_NT)},
-		[PQ_FJ]			= {check = true, known = IsPlayerSpell(PQ_FJ)},
-		[PQ_CS]			= {check = true, known = IsPlayerSpell(PQ_CS)},
-		[PQ_IB]			= {check = true, known = IsPlayerSpell(PQ_IB)},
-		[PQ_MI]			= {check = true, known = IsPlayerSpell(PQ_MI)},
-		[PQ_IV]			= {check = true, known = IsPlayerSpell(PQ_IV)},
-		[PQ_FA]			= {check = true, known = IsPlayerSpell(PQ_FA)},
-		[PQ_RoP]		= {check = true, known = IsPlayerSpell(PQ_RoP)},
-		[PQ_RoF]		= {check = true, known = IsPlayerSpell(PQ_RoF)},
-		[PQ_FFB]		= {check = true, known = IsPlayerSpell(PQ_FFB)},
-		[PQ_MAA]		= {check = true, known = IsPlayerSpell(PQ_MAA)},
-		[PQ_Evo]		= {check = true, known = IsPlayerSpell(PQ_Evo)},
-		[PQ_CoC]		= {check = true, known = IsPlayerSpell(PQ_CoC)},
-		[PQ_POM]		= {check = true, known = IsPlayerSpell(PQ_POM)},
-		[PQ_Ward]		= {check = true, known = IsPlayerSpell(PQ_Ward)},
-		[PQ_Invo]		= {check = true, known = IsPlayerSpell(PQ_Invo)},
-		[PQ_WElm]		= {check = true, known = IsPlayerSpell(PQ_WElm)},
-		[PQ_Comb]		= {check = true, known = IsPlayerSpell(PQ_Comb)},
-		[PQ_Pyro]		= {check = true, known = IsPlayerSpell(PQ_Pyro)},
-		[PQ_ABril]		= {check = true, known = IsPlayerSpell(PQ_ABril)},
-		[PQ_DBril]		= {check = true, known = IsPlayerSpell(PQ_DBril)},
-		[PQ_Freeze]		= {check = true, known = IsPlayerSpell(PQ_Freeze)},
-		[PQ_IBlast]		= {check = true, known = IsPlayerSpell(PQ_IBlast)},
-		[PQ_Scorch]		= {check = true, known = IsPlayerSpell(PQ_Scorch)},
-		[PQ_Barrier]	= {check = true, known = IsPlayerSpell(PQ_Barrier)},
-		[PQ_Fireball]	= {check = true, known = IsPlayerSpell(PQ_Fireball)},
-		[PQ_Blizzard]	= {check = true, known = IsPlayerSpell(PQ_Blizzard)},
-		[PQ_Temporal]	= {check = true, known = IsPlayerSpell(PQ_Temporal)},
-		[PQ_Frostbolt]	= {check = true, known = IsPlayerSpell(PQ_Frostbolt)},
-		[PQ_FrostBomb]	= {check = true, known = IsPlayerSpell(PQ_FrostBomb)}
-	}
 elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQR_WriteToChat("|cffFFBE69Loading |cffffffffPriest|cffFFBE69 Tables ...|cffffffff")
 	
@@ -1362,31 +1211,6 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_DCascade = 127632		-- Dark Cascade
 	PQ_Star		= 110744		-- Divine Star
 	PQ_DStar	= 122121		-- Dark Star
-	
-	-- Spell Table
-	Hysteria_Spell = {
-		-- Shadow
-		[PQ_DP]			= {check = true, known = IsPlayerSpell(PQ_DP)},
-		[PQ_MB]			= {check = true, known = IsPlayerSpell(PQ_MB)},
-		[PQ_VT]			= {check = true, known = IsPlayerSpell(PQ_VT)},
-		[PQ_MS]			= {check = true, known = IsPlayerSpell(PQ_MS)},
-		[PQ_MF]			= {check = true, known = IsPlayerSpell(PQ_MF)},
-		[PQ_SF]			= {check = true, known = IsPlayerSpell(PQ_SF)},
-		[PQ_IF]			= {check = true, known = IsPlayerSpell(PQ_IF)},
-		[PQ_SWD]		= {check = true, known = IsPlayerSpell(PQ_SWD)},
-		[PQ_SWP]		= {check = true, known = IsPlayerSpell(PQ_SWP)},
-		[PQ_PWF]		= {check = true, known = IsPlayerSpell(PQ_PWF)},
-		[PQ_Star]		= {check = true, known = IsPlayerSpell(PQ_Star)},
-		[PQ_MBen]		= {check = true, known = IsPlayerSpell(PQ_MBen)},
-		[PQ_Disp]		= {check = true, known = IsPlayerSpell(PQ_Disp)},
-		[PQ_FDCL]		= {check = true, known = IsPlayerSpell(PQ_FDCL)},
-		[PQ_Halo]		= {check = true, known = IsPlayerSpell(PQ_Halo)},
-		[PQ_MSear]		= {check = true, known = IsPlayerSpell(PQ_MSear)},
-		[PQ_SForm]		= {check = true, known = IsPlayerSpell(PQ_SForm)},
-		[PQ_Solace]		= {check = true, known = IsPlayerSpell(PQ_Solace)},
-		[PQ_DPrayer]	= {check = true, known = IsPlayerSpell(PQ_DPrayer)},
-		[PQ_Cascade]	= {check = true, known = IsPlayerSpell(PQ_Cascade)}
-	}
 elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff9482C9Warlock |cffFFBE69Tables ...|cffffffff")
 	
@@ -1790,50 +1614,4 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_GSuccubus	= 111896	-- Grimoire: Succubus
 	PQ_GFelhunter	= 111897	-- Grimoire: Felhunter
 	PQ_GFelguard	= 111898	-- Grimoire: Felguard
-	
-	Hysteria_Spell = {
-		[PQ_AG]			= {check = true, known = IsPlayerSpell(PQ_AG)},
-		[PQ_UA]			= {check = true, known = IsPlayerSpell(PQ_UA)},
-		[PQ_MG]			= {check = true, known = IsPlayerSpell(PQ_MG)},
-		[PQ_DS]			= {check = true, known = IsPlayerSpell(PQ_DS)},
-		[PQ_SB]			= {check = true, known = IsPlayerSpell(PQ_SB)},
-		[PQ_SS]			= {check = true, known = IsPlayerSpell(PQ_SS)},
-		[PQ_DL]			= {check = true, known = IsPlayerSpell(PQ_DL)},
-		[PQ_HF]			= {check = true, known = IsPlayerSpell(PQ_HF)},
-		[PQ_UR]			= {check = true, known = IsPlayerSpell(PQ_UR)},
-		[PQ_DR]			= {check = true, known = IsPlayerSpell(PQ_DR)},
-		[PQ_SL]			= {check = true, known = IsPlayerSpell(PQ_SL)},
-		[PQ_HL]			= {check = true, known = IsPlayerSpell(PQ_HL)},		
-		[PQ_MC]			= {check = true, known = IsPlayerSpell(PQ_MC)},
-		[PQ_SF]			= {check = true, known = IsPlayerSpell(PQ_SF)},
-		[PQ_SP]			= {check = true, known = IsPlayerSpell(PQ_SP)},
-		[PQ_DB]			= {check = true, known = IsPlayerSpell(PQ_DB)},
-		[PQ_BF]			= {check = true, known = IsPlayerSpell(PQ_BF)},
-		[PQ_BR]			= {check = true, known = IsPlayerSpell(PQ_BR)},
-		[PQ_UW]			= {check = true, known = IsPlayerSpell(PQ_UW)},
-		[PQ_AV]			= {check = true, known = IsPlayerSpell(PQ_AV)},
-		[PQ_KC]			= {check = true, known = IsPlayerSpell(PQ_KC)},
-		[PQ_MF]			= {check = true, known = IsPlayerSpell(PQ_MF)},
-		[PQ_DI]			= {check = true, known = IsPlayerSpell(PQ_DI)},
-		[PQ_ToC]		= {check = true, known = IsPlayerSpell(PQ_ToC)},
-		[PQ_Cor]		= {check = true, known = IsPlayerSpell(PQ_Cor)},
-		[PQ_HOT]		= {check = true, known = IsPlayerSpell(PQ_HOT)},
-		[PQ_DSM]		= {check = true, known = IsPlayerSpell(PQ_DSM)},
-		[PQ_SDM]		= {check = true, known = IsPlayerSpell(PQ_SDM)},
-		[PQ_SIF]		= {check = true, known = IsPlayerSpell(PQ_SIF)},
-		[PQ_COTE]		= {check = true, known = IsPlayerSpell(PQ_COTE)},
-		[PQ_Meta]		= {check = true, known = IsPlayerSpell(PQ_Meta)},
-		[PQ_Doom]		= {check = true, known = IsPlayerSpell(PQ_Doom)},
-		[PQ_Soul]		= {check = true, known = IsPlayerSpell(PQ_Soul)},
-		[PQ_Haunt]		= {check = true, known = IsPlayerSpell(PQ_Haunt)},
-		[PQ_GulDan]		= {check = true, known = IsPlayerSpell(PQ_GulDan)},
-		[PQ_Service]	= {check = true, known = IsPlayerSpell(PQ_Service)},
-		[PQ_Shatter]	= {check = true, known = IsPlayerSpell(PQ_Shatter)},
-		[PQ_Hellfire]	= {check = true, known = IsPlayerSpell(PQ_Hellfire)},
-		[PQ_FelFlame]	= {check = true, known = IsPlayerSpell(PQ_FelFlame)},
-		[PQ_SoulFire]	= {check = true, known = IsPlayerSpell(PQ_SoulFire)},
-		[PQ_Supremacy]	= {check = true, known = IsPlayerSpell(PQ_Supremacy)},
-		[PQ_Sacrifice]	= {check = true, known = IsPlayerSpell(PQ_Sacrifice)},
-		[PQ_ShadowBolt]	= {check = true, known = IsPlayerSpell(PQ_ShadowBolt)}
-	}
 end
