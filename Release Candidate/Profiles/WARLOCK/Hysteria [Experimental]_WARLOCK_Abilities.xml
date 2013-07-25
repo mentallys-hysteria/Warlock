@@ -430,8 +430,8 @@ if DSCD &amp;gt; 0 and DSCD &amp;gt; PQ_Round(120/(1+(UnitSpellHaste(&amp;quot;p
 	CastSpellByName(GetSpellInfo(104316),&amp;quot;target&amp;quot;) return true end
 
 -- Target about to die
---if T2D(&amp;quot;target&amp;quot;) &amp;lt; 32 and SpecialUnit() then
---	CastSpellByName(GetSpellInfo(104316),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Dark Soul: Knowledge</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_DSK = PQ_DSK
+if T2D(&amp;quot;target&amp;quot;) &amp;lt; 32 and SpecialUnit() then
+	CastSpellByName(GetSpellInfo(104316),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Dark Soul: Knowledge</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_DSK = PQ_DSK
 
 -- Disable ability if we disabled it in PQI
 if not PQI_MentallyOffensiveSettings_DarkSoul_enable then return false end
@@ -609,7 +609,7 @@ local Hysteria_UnitInfo = Hysteria_UnitInfo
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
 -- If we have more than 60% Mana, don&amp;apos;t bother tapping.
-if select(3,Hysteria_UnitInfo(&amp;quot;player&amp;quot;)) &amp;gt; 60 then return false end
+if select(3,Hysteria_UnitInfo(&amp;quot;player&amp;quot;)) &amp;gt; 50 then return false end
 
 -- Stop if we&amp;apos;re trying to commit suicide.
 if Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;lt; 30 then return false end
@@ -629,6 +629,10 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 -- Keep DoTs on bosses when in range
 for i=1,4 do
 	local bossUnit = &amp;quot;boss&amp;quot;..i
+	
+	-- Let&amp;apos;s try and detect immunities
+	if UnitBuffID(bossUnit,116994) or UnitBuffID(bossUnit,122540) or UnitBuffID(bossUnit,123250) or UnitBuffID(bossUnit,106062) or UnitBuffID(bossUnit,110945)
+		then return false end
 	
 	if TargetValidation(bossUnit,PQ_Cor) then
 		if not UnitDebuffID(bossUnit,PQ_Cor,&amp;quot;PLAYER&amp;quot;) and T2D(bossUnit) &amp;gt;= 6 then
@@ -704,7 +708,7 @@ if isAOE or isOmni and OmniAoE then
 		and GetSpellCharges(PQ_GulDan) &amp;gt; 0 then
 		
 			-- If Shadowflame is close to coming off CD...
-			if ShadowflameCD &amp;lt;= 3 then
+			if ShadowflameCD &amp;lt;= 4.5 then
 				SpellCancelQueuedSpell()
 				CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
 				return true
@@ -1128,7 +1132,7 @@ if isAOE or OmniAoE then
 		end
 		
 		-- High Fury
-		if fury &amp;gt;= 550 then
+		if fury &amp;gt;= 350 then
 			CastSpellByName(GetSpellInfo(PQ_Meta),&amp;quot;player&amp;quot;)
 			return true
 		end
@@ -1264,13 +1268,10 @@ else
 	end
 	
 	-- Corruption
-	if EA then if Cor and CorTimer - GetTime() &amp;lt; 26*EA then return false end
-		else if Cor and CorTimer - GetTime() &amp;lt; 26 then return false end end
+	if Cor and CorTimer - GetTime() &amp;lt; 18*1.3*EA then return false end
 	
 	-- Cleave Mode
 	if isCleave or OmniCleave then
-		if fury &amp;lt; 100 then CancelShapeshiftForm() return true end
-		
 		local cleaveTargets = {&amp;quot;target&amp;quot;,&amp;quot;focus&amp;quot;,&amp;quot;mouseover&amp;quot;,&amp;quot;boss1&amp;quot;,&amp;quot;boss2&amp;quot;,&amp;quot;boss3&amp;quot;,&amp;quot;boss4&amp;quot;}
 		for i=1,#cleaveTargets do
 			local cleaveCor,_,_,_,_,_,cleaveCorTimer = UnitDebuffID(cleaveTargets[i],PQ_Cor,&amp;quot;PLAYER&amp;quot;)
@@ -1398,7 +1399,7 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 
 if not PQR_SpellAvailable(PQ_ToC) then return false end
 
-if OmniCleave or isCleave then
+if isCleave or (isOmni and OmniCleave) then
 	local cleaveTargets = {&amp;quot;target&amp;quot;,&amp;quot;focus&amp;quot;,&amp;quot;mouseover&amp;quot;,&amp;quot;boss1&amp;quot;,&amp;quot;boss2&amp;quot;,&amp;quot;boss3&amp;quot;,&amp;quot;boss4&amp;quot;}
 	for i=1,#cleaveTargets do
 		local cleaveCor,_,_,_,_,_,cleaveCorTimer = UnitDebuffID(cleaveTargets[i],PQ_Cor,&amp;quot;PLAYER&amp;quot;)
@@ -1407,7 +1408,7 @@ if OmniCleave or isCleave then
 		
 		if TargetValidation(cleaveTargets[i],PQ_SoulFire) then
 			if cleaveCor then
-				if cleaveCorTimer - GetTime() &amp;lt; 20 then
+				if cleaveCorTimer - GetTime() &amp;lt; 16 then
 					CastSpellByName(GetSpellInfo(PQ_ToC),cleaveTargets[i]) return true
 				end
 			end
@@ -1492,6 +1493,10 @@ if not PQR_SpellAvailable(PQ_Doom) then return false end
 for i=1,5 do
 	local bossUnit = &amp;quot;boss&amp;quot;..i
 	local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(bossUnit,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
+	
+	-- Let&amp;apos;s try and detect immunities
+	if UnitBuffID(bossUnit,116994) or UnitBuffID(bossUnit,122540) or UnitBuffID(bossUnit,123250) or UnitBuffID(bossUnit,106062) or UnitBuffID(bossUnit,110945)
+		then return false end
 	
 	if TargetValidation(bossUnit,PQ_SoulFire) and not disableDoom(bossUnit) then
 		local id = UnitGUID(bossUnit)
@@ -1784,7 +1789,7 @@ end
 -- Cleave Toggle --</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Create Healthstone</Name><Default>false</Default><SpellID>6201</SpellID><Actions></Actions><Lua>local getHealthstoneCharges = GetItemCount(5512, nil, true)
 
 -- Don&amp;apos;t spam the Ability
-if UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(6201) then return false end
+if UnitCastingInfo(&amp;quot;player&amp;quot;) or UnitChannelInfo(&amp;quot;player&amp;quot;) then return false end
 
 -- Can&amp;apos;t run and cast
 if not KJcunning then
@@ -1870,7 +1875,7 @@ if not PQI_MentallyDefensiveSettings_UnendingResolve_enable then return false en
 -- Keybind override
 if PQI:IsHotkeys(PQI_MentallyDefensiveSettings_UnendingResolve_key) and not GetCurrentKeyBoardFocus() then
 	CastSpellByName(GetSpellInfo(PQ_UR),&amp;quot;player&amp;quot;) return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Trigger: Force Metamorphosis</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>------------------------------------------------------------
+end</Lua><RecastDelay>0</RecastDelay><Target>Player</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Trigger: Force Metamorphosis</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>------------------------------------------------------------
 -- Ability Hold Trigger
 ------------------------
 if not metaTimer then metaTimer = 0 end
