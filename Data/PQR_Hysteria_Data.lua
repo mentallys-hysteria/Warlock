@@ -6,7 +6,7 @@ Minor = 3
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 7/16/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 7/30/2013|cffffffff")
 end
 
 -- Aura Info function.
@@ -427,6 +427,8 @@ function HysteriaFrame_OnEvent(self,event,...)
 		local damage		= select(15, ...)
 		local critical		= select(21, ...)
 		local doom_tick_every = PQ_Round(15/(1+(UnitSpellHaste("player")/100)),2)
+		local swp_tick_every = PQ_Round(3/(1+(UnitSpellHaste("player")/100)),2)
+		local vt_tick_every = PQ_Round(3/(1+(UnitSpellHaste("player")/100)),2)
 		
 		-- Unit Death events
 		if subEvent == "UNIT_DIED" then
@@ -460,9 +462,38 @@ function HysteriaFrame_OnEvent(self,event,...)
 			if UnitName("player") == source and spellID == PQ_Doom then
 				if #dotTracker > 0 then
 					for i=1,#dotTracker do
-						if dotTracker[i].guid == destGUID then
+						if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then
 							dotTracker[i].doomPower = mentallyPower(603)
 							dotTracker[i].doom_tick_every = doom_tick_every
+							dotTracker[i].spellID = spellID
+							if UnitBuffID("player",138963) then dotTracker[i].crit = true else dotTracker[i].crit = false end
+						end
+					end
+				end
+			end
+			
+			-- Shadow Word: Pain was refreshed on an enemy, update our table.
+			if UnitName("player") == source and spellID == PQ_SWP then
+				if #dotTracker > 0 then
+					for i=1,#dotTracker do
+						if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then
+							dotTracker[i].swpPower = mentallyPower(589)
+							dotTracker[i].swp_tick_every = swp_tick_every
+							dotTracker[i].spellID = spellID
+							if UnitBuffID("player",138963) then dotTracker[i].crit = true else dotTracker[i].crit = false end
+						end
+					end
+				end
+			end
+			
+			-- Vampiric Touch was refreshed on an enemy, update our table.
+			if UnitName("player") == source and spellID == PQ_VT then
+				if #dotTracker > 0 then
+					for i=1,#dotTracker do
+						if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then
+							dotTracker[i].vtPower = mentallyPower(34914)
+							dotTracker[i].vt_tick_every = vt_tick_every
+							dotTracker[i].spellID = spellID
 							if UnitBuffID("player",138963) then dotTracker[i].crit = true else dotTracker[i].crit = false end
 						end
 					end
@@ -489,7 +520,25 @@ function HysteriaFrame_OnEvent(self,event,...)
 				if spellID == PQ_Doom then
 					if #dotTracker > 0 then
 						for i=1,#dotTracker do
-							if dotTracker[i].guid == destGUID then tremove(dotTracker, i) return true end
+							if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then tremove(dotTracker, i) return true end
+						end
+					end
+				end
+				
+				-- Shadow Word: Pain fell of a unit, remove unit from tracker.
+				if spellID == PQ_SWP then
+					if #dotTracker > 0 then
+						for i=1,#dotTracker do
+							if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then tremove(dotTracker, i) return true end
+						end
+					end
+				end
+				
+				-- Vampiric Touch fell of a unit, remove unit from tracker.
+				if spellID == PQ_VT then
+					if #dotTracker > 0 then
+						for i=1,#dotTracker do
+							if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then tremove(dotTracker, i) return true end
 						end
 					end
 				end
@@ -513,12 +562,34 @@ function HysteriaFrame_OnEvent(self,event,...)
 			if UnitName("player") == source then
 				-- Doom applied to a unit, add unit to tracker
 				if spellID == PQ_Doom then
-					for i=1,#dotTracker do if dotTracker[i].guid == destGUID then return false end end
+					for i=1,#dotTracker do if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then return false end end
 					
 					if UnitBuffID("player",138963) then
-						table.insert(dotTracker, {guid = destGUID, doomPower = mentallyPower(603), doom_tick_every = doom_tick_every, crit = true})
+						table.insert(dotTracker, {guid = destGUID, doomPower = mentallyPower(603), doom_tick_every = doom_tick_every, spellID = spellID, crit = true})
 					else
-						table.insert(dotTracker, {guid = destGUID, doomPower = mentallyPower(603), doom_tick_every = doom_tick_every, crit = false})
+						table.insert(dotTracker, {guid = destGUID, doomPower = mentallyPower(603), doom_tick_every = doom_tick_every, spellID = spellID, crit = false})
+					end
+				end
+				
+				-- Shadow Word: Pain applied to a unit, add unit to tracker
+				if spellID == PQ_SWP then
+					for i=1,#dotTracker do if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then return false end end
+					
+					if UnitBuffID("player",138963) then
+						table.insert(dotTracker, {guid = destGUID, swpPower = mentallyPower(589), swp_tick_every = swp_tick_every, spellID = spellID, crit = true})
+					else
+						table.insert(dotTracker, {guid = destGUID, swpPower = mentallyPower(589), swp_tick_every = swp_tick_every, spellID = spellID, crit = false})
+					end
+				end
+				
+				-- Vampiric Touch applied to a unit, add unit to tracker
+				if spellID == PQ_VT then
+					for i=1,#dotTracker do if dotTracker[i].guid == destGUID and dotTracker[i].spellID == spellID then return false end end
+					
+					if UnitBuffID("player",138963) then
+						table.insert(dotTracker, {guid = destGUID, vtPower = mentallyPower(34914), vt_tick_every = vt_tick_every, spellID = spellID, crit = true})
+					else
+						table.insert(dotTracker, {guid = destGUID, vtPower = mentallyPower(34914), vt_tick_every = vt_tick_every, spellID = spellID, crit = false})
 					end
 				end
 				
@@ -737,30 +808,30 @@ function smartCancel()
 	if UnitChannelInfo("player") == GetSpellInfo(PQ_MSear) then return false end
 	
 	-- Not smart cancelling Mind Flay, default.
-	if not PQI_MentallyShadow_MindFlay_enable then
+	if not PQI_MentallyOffensiveSettings_MindFlay_enable then
 		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) then return false end
 	end
 	
 	-- Not smart cancelling Mind Flay (Insanity), default.
-	if not PQI_MentallyShadow_MindFlayInsanity_enable then
+	if not PQI_MentallyOffensiveSettings_MindFlayInsanity_enable then
 		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) then return false end
 	end
 	
 	-- Mind Flay failsafe.
-	if PQI_MentallyShadow_MindFlay_enable then
-		if PQI_MentallyShadow_MindFlay_value > 2 then
+	if PQI_MentallyOffensiveSettings_MindFlay_enable then
+		if PQI_MentallyOffensiveSettings_MindFlay_value > 2 then
 			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < maxFlayTicks - 1 then return false end
 		else
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < PQI_MentallyShadow_MindFlay_value then return false end
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < PQI_MentallyOffensiveSettings_MindFlay_value then return false end
 		end
 	end
 	
 	-- Mind Flay Insanity failsafe.
-	if PQI_MentallyShadow_MindFlayInsanity_enable then
-		if PQI_MentallyShadow_MindFlayInsanity_value > 2 then
+	if PQI_MentallyOffensiveSettings_MindFlayInsanity_enable then
+		if PQI_MentallyOffensiveSettings_MindFlayInsanity_value > 2 then
 			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
 		else
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyShadow_MindFlayInsanity_value then return false end
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyOffensiveSettings_MindFlayInsanity_value then return false end
 		end
 	end
 	
@@ -1042,75 +1113,140 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQR_WriteToChat("|cffFFBE69Loading |cffffffffPriest|cffFFBE69 Tables ...|cffffffff")
 	
 	-- PQInterface Settings
-	local config = {
-		name	= "Shadow",
+	local Defensive = {
+		name	= "Defensive Settings",
 		author	= "Mentally",
-		abilities	= {
+		abilities = {
 			{ 	name	= "Healthstone",
+				tooltip = "When enabled; Allows you to control automatic usage of healthstone at set health %.",
 				enable	= true,
-				widget	= { type = "numBox",
+				widget	= {	type = "numBox",
+					tooltip = "Set the health % value you want Healthstone to be used at.",
 					value	= 50,
 					step	= 5,
-					tooltip	= "Set automatic Healthstone usage.",
 				},
 			},
 			{ 	name	= "Desperate Prayer",
+				tooltip = "When enabled; Allows you to control automatic usage of Desperate Prayer at set health %.",
 				enable	= true,
-				widget	= { type = "numBox",
-					value	= 50,
+				widget	= {	type = "numBox",
+					tooltip = "Set the health % value you want Desperate Prayer to be used at.",
+					value	= 45,
 					step	= 5,
-					tooltip	= "Set automatic Desperate Prayer usage.",
 				},
 			},
-			{ 	name	= "Void Shift",
+			{ 	name	= "Auto Vampiric Embrace",
+				tooltip = "When enabled; Will automatically use Vampiric Embrace whenever you get low on health.",
 				enable	= true,
-				widget	= { type = "numBox",
-					value	= 50,
+				widget	= {	type = "numBox",
+					tooltip = "Set the health % value you want Vampiric Embrace to be used at.",
+					value	= 40,
 					step	= 5,
-					tooltip	= "Set automatic Void Shift usage.",
 				},
 			},
+			{ 	name	= "Raid Buffing",
+				tooltip = "When enabled; Will automatically try to buff your raid or party.",
+				enable	= true,
+				newSection  = true,
+			},
+			{ 	name	= "Body and Soul",
+				tooltip = "When enabled; Will automatically shield you while running when Body and Soul is selected as a talent.",
+				enable	= true,
+			},
+			{ 	name	= "Fade",
+				tooltip = "When enabled; Will automatically use Fade whenever you gain aggro from any source, or damage when Glyphed.",
+				enable	= true,
+			},
+		},
+		hotkeys = {
+			{	name	= "Pause Rotation",
+				enable	= false,
+				hotkeys	= {},
+			},
+			{	name	= "Symbiosis",
+				enable	= false,
+				hotkeys	= {},
+			},
+			{	name	= "Mass Dispel",
+				enable	= true,
+				hotkeys	= {'la'},
+			},
+		},
+	}
+	
+	local Offensive = {
+		name	= "Offensive Settings",
+		author	= "Mentally",
+		abilities = {
 			{ 	name	= "Combat Detection",
-				tooltip	= "Only allow buffing and summoning of pet while not in combat.",
+			    tooltip = "Toggle the profile to pause automatically when not engaged in combat.",
+				enable	= true,
+			},
+			{ 	name	= "Spell Queue Type",
+			    tooltip = "This setting allows you to enable and set how you want Spell Queue overriding to work. It will either queue up the spell on the next GCD when you mouseover or click the ability.",
+				enable	= true,
+				newSection  = true,
+				widget	= { type = "select",
+					tooltip = "Select how you want to queue the next spell.",
+					values	= {
+						"Click",
+						"Mouseover",
+						"Command",
+					},
+					width	= 80,
+				},
+			},
+			{ 	name	= "Auto Potion",
+			    tooltip = "Toggle the use of Potion of the Jade Serpent under the effects of Bloodlust/Heroism/Time Warp/Ancient Hysteria.",
 				enable	= true,
 				newSection  = true,
 			},
 			{ 	name	= "Auto Racials",
-				tooltip	= "Automatic Racial usage.",
+			    tooltip = "Toggle the use of Racials.",
 				enable	= true,
 			},
-			{ 	name	= "Auto Potion",
-				tooltip	= "Automatic Potion usage under Heroism.",
+			{ 	name	= "Auto Frag Belt",
+			    tooltip = "Toggle the use of automatic Frag Belt during Metamorphosis (Mouseover).",
 				enable	= true,
 			},
 			{ 	name	= "Auto Shadowfiend",
-				tooltip	= "Automatic Shadowfiend usage.",
+			    tooltip = "Toggle Automatic usage of Shadowfiend.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Power Infusion",
-				tooltip	= "Automatic Power Infusion usage.",
+			    tooltip = "Toggle Automatic usage of Power Infusion.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Level 90 Talent",
-				tooltip	= "Automatically casts your selected level 90 talent as appropriately as possible.",
+			    tooltip = "Toggle Automatic usage of your selected Level 90 talent.",
 				enable	= true,
 			},
-			{ 	name	= "Auto Boss Dotting",
-				tooltip = "Enabled/Disabled automatic dotting of Boss Units. This is intended to keep dots 100% up all bosses in range while you're doing other things.",
+			{ 	name	= "Boss Cooldown",
+			    tooltip = "Toggle the use of cooldowns on boss targets only.",
 				enable	= true,
 				newSection  = true,
 			},
-			{ 	name	= "Boss Cooldown",
-				tooltip = "Enabled/Disabled boss cooldown checks.",
+			{ 	name	= "Focus Dotting",
+			    tooltip = "Toggle Automatic dotting of the focus target.",
+				enable	= true,
+				newSection  = true,
+			},
+			{ 	name	= "Auto Boss Dotting",
+			    tooltip = "Toggle the Automatic dotting of all feasible boss targets you're currently engaged with.",
+				enable	= true,
+			},
+			{ 	name	= "Mouseover Dotting",
+			    tooltip = "Toggle Automatic dotting of the mouseover target.",
 				enable	= true,
 			},
 			{ 	name	= "Mind Flay",
 				enable	= true,
 				newSection  = true,
 				widget	= { type = "numBox",
-					value	= 2,
+					value	= 3,
 					step	= 1,
-					tooltip	= "Allow spells and abilities to cancel Mind Flay after set ticks.",
+					max		= 3,
+					tooltip	= "Allow spells and abilities to cancel Mind Flay after X ticks.",
 				},
 			},
 			{ 	name	= "Mind Flay (Insanity)",
@@ -1118,50 +1254,41 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 				widget	= { type = "numBox",
 					value	= 3,
 					step	= 1,
-					tooltip	= "Allow spells and abilities to cancel Mind Flay after set ticks.",
+					max		= 3,
+					tooltip	= "Allow spells and abilities to cancel Mind Flay (Insanity) after X ticks.",
 				},
+			},
+			{ 	name	= "Double Shadow Word Death",
+			    tooltip = "Toggle whether to double-tap Shadow Word: Death or just cast it once.",
+				enable	= true,
 			},
 		},
 		hotkeys = {
-			{	name	= "Pause Rotation",
+			{	name	= "Mind Sear",
 				enable	= true,
-				hotkeys	= {'rc', 'ra'},
-			},
-			{	name	= "Toggle Cooldown Mode",
-				enable	= true,
-				hotkeys	= {'rs'},
+				hotkeys	= {'ls'},
 			},
 			{	name	= "Dispersion",
 				enable	= true,
 				hotkeys	= {'ra'},
 			},
-			{	name	= "Mass Dispel",
+			{	name	= "Level 15 Talent",
 				enable	= true,
-				hotkeys	= {'la'},
-			},
-			{	name	= "Mind Sear",
-				enable	= true,
-				hotkeys	= {'ls'},
+				hotkeys	= {'rc'},
 			},
 			{	name	= "Level 90 Talent",
 				enable	= false,
-				hotkeys	= {'ls'},
-			},
-			{	name	= "Level 15 Talent",
-				enable	= true,
 				hotkeys	= {},
 			},
-			{	name	= "Void Shift",
-				enable	= true,
-				hotkeys	= {},
-			},
-			{	name	= "Vampiric Embrace",
-				enable	= true,
+			{	name	= "Toggle Hold Cooldown",
+			    tooltip = "Select the keybind for the usage of holding cooldowns.",
+				enable	= false,
 				hotkeys	= {},
 			},
 		},
 	}
-	HYSTERIA_SHADOW = PQI:AddRotation(config)
+	HYSTERIA_SHADOW_DEF = PQI:AddRotation(Defensive)
+	HYSTERIA_SHADOW_OFF = PQI:AddRotation(Offensive)
 	
 	-- Skill IDs
 	PQ_DP		= 2944			-- Devouring Plague
@@ -1173,6 +1300,9 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_MF		= 15407			-- Mind Flay
 	PQ_MFI		= 129197		-- Mind Flay (Insanity)
 	PQ_MSear	= 48045			-- Mind Sear
+	
+	-- Defensive Abilities
+	PQ_MDisp	= 32375			-- Mass Dispel
 	
 	-- Cooldowns
 	PQ_SF		= 34433			-- Shadowfiend
