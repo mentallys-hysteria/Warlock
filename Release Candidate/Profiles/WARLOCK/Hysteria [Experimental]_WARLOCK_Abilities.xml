@@ -602,8 +602,13 @@ if isOmni and OmniAoE then return false end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_FelFlame) then	
 	CastSpellByName(GetSpellInfo(PQ_FelFlame),&amp;quot;target&amp;quot;) return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Life Tap</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_LifeTap = 1454
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Life Tap</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local T2D = T2D
+local PQ_LifeTap = 1454
+local SpecialUnit = SpecialUnit
 local Hysteria_UnitInfo = Hysteria_UnitInfo
+
+-- Disable when we&amp;apos;re in execute range.
+if SpecialUnit() and T2D(&amp;quot;target&amp;quot;) &amp;lt; 20 then return false end
 
 -- Disable inside Metamorphosis
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
@@ -973,7 +978,10 @@ if GetItemCount(5512) &amp;gt; 0
 	and Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;lt;= v
 	and PQR_SpellAvailable(5512)
 	and GetItemCooldown(5512) == 0
-then UseItemByName(5512) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Frag Belt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-- If we don&amp;apos;t know Engineering. Don&amp;apos;t activate.
+then UseItemByName(5512) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Frag Belt</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-- Ability disabled in PQI
+if not PQI_MentallyOffensiveSettings_FragBelt_enable then return false end
+
+-- If we don&amp;apos;t know Engineering. Don&amp;apos;t activate.
 for i=1,9 do
 	if select(7,GetProfessionInfo(i)) == 202 then hasEngi = true end
 end
@@ -1091,7 +1099,8 @@ if isOmni and not OmniAoE then return false end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
 	CastSpellByName(GetSpellInfo(PQ_Hellfire),&amp;quot;player&amp;quot;) return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Cor = PQ_Cor
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local T2D = T2D
+local PQ_Cor = PQ_Cor
 local PQ_DSK = PQ_DSK
 local OmniAoE = OmniAoE
 local PQ_Doom = PQ_Doom
@@ -1201,6 +1210,8 @@ else
 			SpellCancelQueuedSpell()
 			CastShapeshiftForm(1) return true
 		end
+	elseif SpecialUnit() and or T2D(&amp;quot;target&amp;quot;) &amp;lt; 20 then
+		if fury &amp;gt;= 900 then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
 	else if fury &amp;gt;= 250 then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Aura of the Elements</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_AOTE = PQ_AOTE
 local OmniAoE = OmniAoE
@@ -1217,11 +1228,13 @@ if isOmni and not OmniAoE then return false end
 -- Cast when ready
 if PQR_SpellAvailable(PQ_AOTE) then
 	if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_AOTE) then CastSpellByName(GetSpellInfo(PQ_AOTE),&amp;quot;player&amp;quot;) return true end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Cancel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Meta = PQ_Meta
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Cancel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local T2D = T2D
+local PQ_Meta = PQ_Meta
 local PQ_Doom = PQ_Doom
+local OmniAoE = OmniAoE
 local PQ_HasHero = PQ_HasHero
 local OmniCleave = OmniCleave
-local OmniAoE = OmniAoE
+local SpecialUnit = SpecialUnit
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local fury = select(5,Hysteria_UnitInfo(&amp;quot;player&amp;quot;))
 local Cor,_,_,_,_,_,CorTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;)
@@ -1231,6 +1244,9 @@ local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Doom
 
 -- Don&amp;apos;t try to Exit Metamorphosis in Caster Form
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
+
+-- Execute Range
+if SpecialUnit() and T2D(&amp;quot;target&amp;quot;) &amp;lt; 20 then return false end
 
 -- UVLS Logic
 if UnitBuffID(&amp;quot;player&amp;quot;,138963) then return false end
@@ -1444,6 +1460,7 @@ local disableDoom = disableDoom
 local PQ_SoulFire = PQ_SoulFire
 local mentallyPower = mentallyPower
 local TargetValidation = TargetValidation
+local tick_every = 15/(1+(UnitSpellHaste(&amp;quot;player&amp;quot;)/100))
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
 
 -- Don&amp;apos;t try to Doom target in caster form
@@ -1455,19 +1472,27 @@ if not PQR_SpellAvailable(PQ_Doom) then return false end
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) and not disableDoom(&amp;quot;target&amp;quot;) then
 	local id = UnitGUID(&amp;quot;target&amp;quot;)
 	
-	if UnitHealthMax(&amp;quot;target&amp;quot;) &amp;lt; UnitHealthMax(&amp;quot;player&amp;quot;)*20 then return false end
+	if UnitHealthMax(&amp;quot;target&amp;quot;) &amp;lt; UnitHealthMax(&amp;quot;player&amp;quot;) * 10 then return false end
 	
 	if Doom then
 		for i=1,#dotTracker do
 			if dotTracker[i].guid == id then
 				if UnitBuffID(&amp;quot;player&amp;quot;,138963) then
+					if dotTracker[i].crit == true then
+						if doomTimer - GetTime() / dotTracker[i].doom_tick_every &amp;lt;= 60 * 1.5 * EA / tick_every then
+							CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true
+						end
+					end
 					if dotTracker[i].crit == false then
-						if doomTimer - GetTime() &amp;lt; 60*1.3*EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
+						if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 					end
 				else
+					if dotTracker[i].crit == true then
+						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
+					end
 					if dotTracker[i].crit == false then
 						if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-							if doomTimer - GetTime() &amp;lt; 60*1.3*EA/MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 						end
 						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 					end
@@ -1480,8 +1505,9 @@ local disableDoom = disableDoom
 local PQ_SoulFire = PQ_SoulFire
 local mentallyPower = mentallyPower
 local TargetValidation = TargetValidation
+local tick_every = 15/(1+(UnitSpellHaste(&amp;quot;player&amp;quot;)/100))
 
--- Disable Boss dotting if we&amp;apos;ve unchecked it in the config.
+-- Ability disabled in PQI
 if not PQI_MentallyOffensiveSettings_AutoBossDotting_enable then return false end
 
 -- Don&amp;apos;t try to Doom target in caster form
@@ -1505,13 +1531,21 @@ for i=1,5 do
 			for i=1,#dotTracker do
 				if dotTracker[i].guid == id then
 					if UnitBuffID(&amp;quot;player&amp;quot;,138963) then
+						if dotTracker[i].crit == true then
+							if doomTimer - GetTime() / dotTracker[i].doom_tick_every &amp;lt;= 60 * 1.5 * EA / tick_every then
+								CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true
+							end
+						end
 						if dotTracker[i].crit == false then
-							if doomTimer - GetTime() &amp;lt; 60*1.3*EA then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 						end
 					else
+						if dotTracker[i].crit == true then
+							if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
+						end
 						if dotTracker[i].crit == false then
 							if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-								if doomTimer - GetTime() &amp;lt; 60*1.3*EA/MP then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
+								if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 							end
 							if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 						end
@@ -1525,7 +1559,11 @@ local disableDoom = disableDoom
 local PQ_SoulFire = PQ_SoulFire
 local mentallyPower = mentallyPower
 local TargetValidation = TargetValidation
+local tick_every = 15/(1+(UnitSpellHaste(&amp;quot;player&amp;quot;)/100))
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;focus&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
+
+-- Ability disabled in PQI
+if not PQI_MentallyOffensiveSettings_FocusDotting_enable then return false end
 
 -- Don&amp;apos;t try to Doom target in caster form
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
@@ -1536,19 +1574,27 @@ if not PQR_SpellAvailable(PQ_Doom) then return false end
 if TargetValidation(&amp;quot;focus&amp;quot;,PQ_SoulFire) and not disableDoom(&amp;quot;focus&amp;quot;) then
 	local id = UnitGUID(&amp;quot;focus&amp;quot;)
 	
-	if UnitHealthMax(&amp;quot;focus&amp;quot;) &amp;lt; UnitHealthMax(&amp;quot;player&amp;quot;)*20 then return false end
+	if UnitHealthMax(&amp;quot;focus&amp;quot;) &amp;lt; UnitHealthMax(&amp;quot;player&amp;quot;) * 10 then return false end
 	
 	if Doom then
 		for i=1,#dotTracker do
 			if dotTracker[i].guid == id then
 				if UnitBuffID(&amp;quot;player&amp;quot;,138963) then
+					if dotTracker[i].crit == true then
+						if doomTimer - GetTime() / dotTracker[i].doom_tick_every &amp;lt;= 60 * 1.5 * EA / tick_every then
+							CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true
+						end
+					end
 					if dotTracker[i].crit == false then
-						if doomTimer - GetTime() &amp;lt; 60*1.3*EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
+						if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 					end
 				else
+					if dotTracker[i].crit == true then
+						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
+					end
 					if dotTracker[i].crit == false then
 						if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-							if doomTimer - GetTime() &amp;lt; 60*1.3*EA/MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 						end
 						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 					end
@@ -1561,7 +1607,11 @@ local disableDoom = disableDoom
 local PQ_SoulFire = PQ_SoulFire
 local mentallyPower = mentallyPower
 local TargetValidation = TargetValidation
+local tick_every = 15/(1+(UnitSpellHaste(&amp;quot;player&amp;quot;)/100))
 local Doom,_,_,_,_,_,doomTimer = UnitDebuffID(&amp;quot;mouseover&amp;quot;,PQ_Doom,&amp;quot;PLAYER&amp;quot;)
+
+-- Ability disabled in PQI
+if not PQI_MentallyOffensiveSettings_MouseoverDotting_enable then return false end
 
 -- Don&amp;apos;t try to Doom target in caster form
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
@@ -1572,19 +1622,27 @@ if not PQR_SpellAvailable(PQ_Doom) then return false end
 if TargetValidation(&amp;quot;mouseover&amp;quot;,PQ_SoulFire) and not disableDoom(&amp;quot;mouseover&amp;quot;) then
 	local id = UnitGUID(&amp;quot;mouseover&amp;quot;)
 	
-	if UnitHealthMax(&amp;quot;mouseover&amp;quot;) &amp;lt; UnitHealthMax(&amp;quot;player&amp;quot;)*20 then return false end
+	if UnitHealthMax(&amp;quot;mouseover&amp;quot;) &amp;lt; UnitHealthMax(&amp;quot;player&amp;quot;) * 10 then return false end
 	
 	if Doom then
 		for i=1,#dotTracker do
 			if dotTracker[i].guid == id then
 				if UnitBuffID(&amp;quot;player&amp;quot;,138963) then
+					if dotTracker[i].crit == true then
+						if doomTimer - GetTime() / dotTracker[i].doom_tick_every &amp;lt;= 60 * 1.5 * EA / tick_every then
+							CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true
+						end
+					end
 					if dotTracker[i].crit == false then
-						if doomTimer - GetTime() &amp;lt; 60*1.3*EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
+						if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 					end
 				else
+					if dotTracker[i].crit == true then
+						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
+					end
 					if dotTracker[i].crit == false then
 						if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-							if doomTimer - GetTime() &amp;lt; 60*1.3*EA/MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 						end
 						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 					end
@@ -1727,6 +1785,7 @@ end
 
 if Hysteria_UnitInfo(&amp;quot;player&amp;quot;) and PQR_IsMoving(0.1) and not UnitBuffID(&amp;quot;player&amp;quot;,PQ_BR) and UnitDebuffID(&amp;quot;player&amp;quot;,119050) then
 	RunMacroText(&amp;quot;/stopcasting&amp;quot;)
+	SpellCancelQueuedSpell()
 	CastSpellByName(GetSpellInfo(PQ_BR),&amp;quot;player&amp;quot;)
 	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Fear (Mouseover)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-- Disable ability if we disabled it in PQI
