@@ -1,12 +1,12 @@
 ------------------------------------------------------------
 -- Functions & Variables
 ------------------------
-Version = 2.1
-Minor = 3
+Version = 2
+Minor = 6
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 7/30/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 8/15/2013|cffffffff")
 end
 
 -- Aura Info function.
@@ -321,6 +321,13 @@ PQ_TemporaryBuffs = {
 	{spellID = 138963, check = true, hasBuff = false, endTime = nil}
 }
 
+-- Spell Cooldown Function
+spellCooldown = nil
+function spellCooldown(spell)
+	local spellCD = GetSpellCooldown(spell) + select(2,GetSpellCooldown(spell)) - GetTime()
+	if spellCD > 0 then return spellCD else return 0 end
+end
+
 -- Warlock Tier set table
 warlockT15 = {
 	96725,96726,96727,96728,96729,	-- Tier 15: Heroic
@@ -634,7 +641,7 @@ function Hysteria_CastCheck(spell, buff)
 		if select(7,GetSpellInfo(spell)) == 0 then return true end
 		
 		-- Check the cast time
-		if buffTime - GetTime() > PQ_Round(select(7,GetSpellInfo(spell))/1000,2) + 1 then return true
+		if buffTime - GetTime() > PQ_Round(select(7,GetSpellInfo(spell))/1000,2) + 0.8 then return true
 			else return false end
 	end
 	return false
@@ -936,119 +943,181 @@ if select(2, UnitClass("player")) == "MAGE" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff69CCF0Mage|cffFFBE69 Tables ...|cffffffff")
 	
 	-- PQInterface Settings
-	local config = {
-		name	= "Mage",
+	local Defensive = {
+		name	= "Defensive Settings",
 		author	= "Mentally",
-		abilities	= {
+		abilities = {
 			{ 	name	= "Healthstone",
+				tooltip = "When enabled; Allows you to control automatic usage of healthstone at set health %.",
 				enable	= true,
-				widget	= { type = "numBox",
+				widget	= {	type = "numBox",
+					tooltip = "Set the health % value you want Healthstone to be used at.",
 					value	= 50,
 					step	= 5,
-					tooltip	= "Automatically use Healthstone at set Health Value",
 				},
 			},
 			{ 	name	= "Mana Gem",
+				tooltip = "When enabled; Allows you to control automatic usage of Mana Gem at set mana %.",
+				enable	= true,
+				widget	= {	type = "numBox",
+					tooltip = "Set the mana % value you want Mana Gem to be used at.",
+					value	= 70,
+					step	= 5,
+				},
+			},
+			{ 	name	= "Symbiosis",
+				tooltip = "When enabled; Allows you to control when and how the profile casts Symbiosis on you and your pet.",
 				enable	= true,
 				widget	= { type = "numBox",
-					value	= 85,
+					tooltip = "Set the health % value you want Symbiosis to be cast at.",
+					value	= 25,
 					step	= 5,
-					tooltip	= "Automatically use Mana Gem at set Mana Value",
 				},
 			},
 			{ 	name	= "Raid Buffing",
-				tooltip	= "Automatically buff raid members when no multiplier buff is available",
-				enable	= true,
-				newSection = true,
-			},
-			{ 	name	= "Pet Management",
-				tooltip	= "Automatically summon and manage your Water Elemental.",
+				tooltip = "When enabled; Will automatically try to buff your raid or party.",
 				enable	= true,
 			},
-			{ 	name	= "Combat Detection",
-				tooltip	= "Only allow buffing and summoning of pet while not in combat.",
-				enable	= true,
+			{ 	name	= "Spell Singer",
+				tooltip = "When enabled; Will automatically try to steal valuable spells from your surrounding targets.",
+				enable	= false,
 			},
-			{ 	name	= "Auto Potion",
-				tooltip	= "Automatically use your DPS potion during Heroism",
-				enable	= true,
-				newSection = true,
+			{ 	name	= "Remove Curse",
+				tooltip = "When enabled; Will automatically remove curses from friendly targets.",
+				enable	= false,
 			},
-			{ 	name	= "Auto Racials",
-				tooltip	= "Automatically use your Racial & Profession abilities",
-				enable	= true,
-			},
-			{ 	name	= "Automatic Frost Mode",
-				tooltip	= "This mode overrides settings for your major cooldowns and allows the profile to try and determine the best situational use for these abilities.",
-				enable	= true,
-				newSection = true,
-			},
-			{ 	name	= "Automatic Fire Mode",
-				tooltip	= "This mode overrides settings for your major cooldowns and allows the profile to try and determine the best situational use for these abilities.",
-				enable	= true,
-			},
-			{ 	name	= "Automatic Mirror Image",
-				tooltip	= "Automatically use Mirror Image.",
-				enable	= true,
-			},
-			{ 	name	= "Boss Only Cooldowns",
-				tooltip	= "Only use cooldowns on Boss and Special units.",
-				enable	= true,
-			},
-			{ 	name	= "Mouseover Dotting",
-				tooltip	= "Cast DoTs on Mouseover.",
-				enable	= true,
-				newSection = true,
-			},
-			{ 	name	= "Focus Dotting",
-				tooltip	= "Cast DoTs on Focus.",
-				enable	= true,
+			{ 	name	= "Polymorph",
+			    tooltip = "When enabled; This setting will allow you to select how you want Polymorph to be used.\n\n When enabled and a mode other than <Keybinding> have been selected, the profile will try and use Polymorph automatically on cooldown.",
+				enable	= false,
+				newSection  = true,
+				widget	= { type = "select",
+					tooltip = "Select how you want Polymorph to behave.",
+					values	= {
+						"Arena",
+						"Focus",
+						"Target",
+						"Mouseover",
+						"Keybinding",
+					},
+					width	= 80,
+				},
 			},
 		},
-		hotkeys		= {
+		hotkeys = {
 			{	name	= "Pause Rotation",
 				enable	= true,
-				hotkeys	= {'rc', 'ra'},
-			},
-			{	name	= "Toggle Cooldown Mode",
-				enable	= false,
-				hotkeys	= {'rs'},
+				hotkeys	= {'lc'},
 			},
 			{	name	= "Level 30 Talent",
-				enable	= true,
-				hotkeys	= {'rc'},
+				enable	= false,
+				hotkeys	= {},
 			},
 			{	name	= "Level 45 Talent",
-				enable	= true,
-				hotkeys	= {'rs'},
+				enable	= false,
+				hotkeys	= {},
 			},
 			{	name	= "Level 90 Talent",
 				enable	= true,
 				hotkeys	= {'ra'},
 			},
-			{	name	= "Combustion",
+		},
+	}
+	local Offensive = {
+		name	= "Offensive Settings",
+		author	= "Mentally",
+		abilities = {
+			{ 	name	= "Combat Detection",
+			    tooltip = "Toggle the profile to pause automatically when not engaged in combat.",
+				enable	= true,
+			},
+			{ 	name	= "Spell Queue Type",
+			    tooltip = "This setting allows you to enable and set how you want Spell Queue overriding to work. It will either queue up the spell on the next GCD when you mouseover or click the ability.",
 				enable	= false,
-				hotkeys	= {'ls'},
+				newSection  = true,
+				widget	= { type = "select",
+					tooltip = "Select how you want to queue the next spell.",
+					values	= {
+						"Click",
+						"Mouseover",
+						"Command",
+					},
+					width	= 80,
+				},
+			},
+			{ 	name	= "Auto Potion",
+			    tooltip = "Toggle the use of Potion of the Jade Serpent under the effects of Bloodlust/Heroism/Time Warp/Ancient Hysteria.",
+				enable	= true,
+				newSection  = true,
+			},
+			{ 	name	= "Auto Racials",
+			    tooltip = "Toggle the automatic usage of Racials.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Alter Time",
+			    tooltip = "Toggle the automatic usage of Alter Time.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Icy Veins",
+			    tooltip = "Toggle the automatic usage of Icy Veins.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Mirror Image",
+			    tooltip = "Toggle the automatic usage of Mirror Image.",
+				enable	= true,
+			},
+			{ 	name	= "Frag Belt",
+			    tooltip = "Toggle the use of automatic Frag Belt.",
+				enable	= true,
+			},
+			{ 	name	= "Boss Cooldown",
+			    tooltip = "Toggle the use of cooldowns on boss targets only.",
+				enable	= true,
+				newSection  = true,
+			},
+			{ 	name	= "Focus Dotting",
+			    tooltip = "Toggle Automatic dotting of the focus target.",
+				enable	= true,
+				newSection  = true,
+			},
+			{ 	name	= "Auto Boss Dotting",
+			    tooltip = "Toggle the Automatic dotting of all feasible boss targets you're currently engaged with.",
+				enable	= true,
+			},
+			{ 	name	= "Mouseover Dotting",
+			    tooltip = "Toggle Automatic dotting of the mouseover target.",
+				enable	= true,
+			},
+		},
+		hotkeys = {
+			{	name	= "Toggle Hold Cooldown",
+			    tooltip = "Select the keybind for the usage of holding cooldowns.",
+				enable	= false,
+				hotkeys	= {},
+			},
+			{	name	= "AOE Mode",
+				tooltip = "Select the keybinding you wish to cast AoE Spells with!\n\nThis includes Flamestrike and Blizzard on mouseover location.",
+				enable	= false,
+				hotkeys	= {},
 			},
 			{	name	= "Icy Veins",
+			    tooltip = "Select the keybind to use Icy Veins with.",
 				enable	= false,
-				hotkeys	= {'ls'},
+				hotkeys	= {},
 			},
 			{	name	= "Alter Time",
+			    tooltip = "Select the keybind to use Alter Time with.",
 				enable	= false,
-				hotkeys	= {'la'},
+				hotkeys	= {},
 			},
-			{	name	= "Pet Freeze (Mouseover)",
+			{	name	= "Pet (Freeze)",
+			    tooltip = "Select the keybind to use your Pet's Freeze ability with. (Mouseover location)",
 				enable	= true,
-				hotkeys	= {'rs'},
-			},
-			{	name	= "Flamestrike (Mouseover)",
-				enable	= true,
-				hotkeys	= {'la'},
+				hotkeys	= {'ls'},
 			},
 		},
 	}
-	HYSTERIA_MAGE = PQI:AddRotation(config)
+	HYSTERIA_MAGE_DEF = PQI:AddRotation(Defensive)
+	HYSTERIA_MAGE_OFF = PQI:AddRotation(Offensive)
 	
 	-- Skills
 	PQ_Frostbolt	= 116		-- Frostbolt
@@ -1202,23 +1271,23 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 				newSection  = true,
 			},
 			{ 	name	= "Auto Racials",
-			    tooltip = "Toggle the use of Racials.",
+			    tooltip = "Toggle the automatic usage of Racials.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Frag Belt",
-			    tooltip = "Toggle the use of automatic Frag Belt during Metamorphosis (Mouseover).",
+			    tooltip = "Toggle the automatic usage of Frag Belt.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Shadowfiend",
-			    tooltip = "Toggle Automatic usage of Shadowfiend.",
+			    tooltip = "Toggle the automatic usage of Shadowfiend.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Power Infusion",
-			    tooltip = "Toggle Automatic usage of Power Infusion.",
+			    tooltip = "Toggle the automatic usage of Power Infusion.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Level 90 Talent",
-			    tooltip = "Toggle Automatic usage of your selected Level 90 talent.",
+			    tooltip = "Toggle the automatic usage of your selected Level 90 talent.",
 				enable	= true,
 			},
 			{ 	name	= "Boss Cooldown",
@@ -1341,6 +1410,24 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQ_DCascade = 127632		-- Dark Cascade
 	PQ_Star		= 110744		-- Divine Star
 	PQ_DStar	= 122121		-- Dark Star
+elseif select(2, UnitClass("player")) == "ROGUE" then
+	PQR_WriteToChat("|cffFFBE69Loading |cffFFF569Rogue|cffFFBE69 Tables ...|cffffffff")
+	
+	-- Skills
+	PQ_Ambush		= 8676		-- Ambush
+	PQ_RStrike		= 84617		-- Revealing Strike
+	PQ_SStrike		= 1752		-- Sinister Strike
+	PQ_SnD			= 5171		-- Slice and Dice
+	PQ_Stealth		= 1784		-- Stealth
+	PQ_Rupture		= 1943		-- Rupture
+	PQ_Evis			= 2098		-- Eviscerate
+	PQ_Poison		= 2823		-- Deadly Poison
+	
+	-- Cooldowns
+	PQ_ARush		= 13750		-- Adrenaline Rush
+	PQ_SBlades		= 121471	-- Shadow Blades
+	PQ_Spree		= 51690		-- Killing Spree
+	PQ_SnD			= 5171		-- Slice and Dice
 elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff9482C9Warlock |cffFFBE69Tables ...|cffffffff")
 	
@@ -1519,7 +1606,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 				newSection  = true,
 			},
 			{ 	name	= "Auto Racials",
-			    tooltip = "Toggle the use of Racials.",
+			    tooltip = "Toggle the automatic usage of Racials.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Imp Swarm",
@@ -1535,7 +1622,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 				enable	= true,
 			},
 			{ 	name	= "Frag Belt",
-			    tooltip = "Toggle the use of automatic Frag Belt during Metamorphosis (Mouseover).",
+			    tooltip = "Toggle the automatic usage of Frag Belt during Metamorphosis (Mouseover).",
 				enable	= true,
 			},
 			{ 	name	= "Boss Cooldown",
@@ -1553,6 +1640,10 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			},
 			{ 	name	= "Mouseover Dotting",
 			    tooltip = "Toggle Automatic dotting of the mouseover target.",
+				enable	= true,
+			},
+			{ 	name	= "Soul Fire with Immo Aura",
+			    tooltip = "Toggle usage of Soul Fire during Immolation Aura.",
 				enable	= true,
 			},
 			{ 	name	= "Summon Pet",
@@ -1629,6 +1720,11 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			    tooltip = "Select the keybind for toggling the Omni Rotation's Cleave rotation.",
 				enable	= false,
 				hotkeys	= {'rc'},
+			},
+			{	name	= "Toggle Immolation Aura",
+			    tooltip = "Select the keybind for toggling Immolation Aura during single-target, cleave and Omni mode.",
+				enable	= false,
+				hotkeys	= {},
 			},
 			{	name	= "Toggle Omni AoE",
 			    tooltip = "Select the keybind for toggling the Omni Rotation's AoE rotation.",
