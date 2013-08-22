@@ -9,6 +9,13 @@ if not PQR_LoadedDataFile then
 	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 8/15/2013|cffffffff")
 end
 
+-- Initialize Dot Tracker
+if not dotTracker then dotTracker = {} end
+
+-- General Settings
+SCD = false
+Trinket = 0
+
 -- Aura Info function.
 buffs = {
 	stat 		=	{ 90363, 20217,	115921, 1126 },
@@ -620,6 +627,12 @@ function HysteriaFrame_OnEvent(self,event,...)
 				end
 				-- Inferno Blast (Always a critical)
 				if spellID == PQ_IBlast then InfernoDamage = damage end
+				-- Frostbolt (5.4 Mastery change: Icicles)
+				if spellID == PQ_Frostbolt then PQ_Icicles = PQ_Icicles + 1 end
+				-- Ice Lance (5.4 Mastery change: Icicles)
+				if spellID == PQ_IL then PQ_Icicles = 0 end
+				-- Frostfire Bolt (5.4 Mastery change: Icicles)
+				if spellID == PQ_FFB then PQ_Icicles = PQ_Icicles + 1 end
 			end
 		end
 	end
@@ -942,182 +955,192 @@ end
 if select(2, UnitClass("player")) == "MAGE" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff69CCF0Mage|cffFFBE69 Tables ...|cffffffff")
 	
-	-- PQInterface Settings
-	local Defensive = {
-		name	= "Defensive Settings",
-		author	= "Mentally",
-		abilities = {
-			{ 	name	= "Healthstone",
-				tooltip = "When enabled; Allows you to control automatic usage of healthstone at set health %.",
-				enable	= true,
-				widget	= {	type = "numBox",
-					tooltip = "Set the health % value you want Healthstone to be used at.",
-					value	= 50,
-					step	= 5,
-				},
-			},
-			{ 	name	= "Mana Gem",
-				tooltip = "When enabled; Allows you to control automatic usage of Mana Gem at set mana %.",
-				enable	= true,
-				widget	= {	type = "numBox",
-					tooltip = "Set the mana % value you want Mana Gem to be used at.",
-					value	= 70,
-					step	= 5,
-				},
-			},
-			{ 	name	= "Symbiosis",
-				tooltip = "When enabled; Allows you to control when and how the profile casts Symbiosis on you and your pet.",
-				enable	= true,
-				widget	= { type = "numBox",
-					tooltip = "Set the health % value you want Symbiosis to be cast at.",
-					value	= 25,
-					step	= 5,
-				},
-			},
-			{ 	name	= "Raid Buffing",
-				tooltip = "When enabled; Will automatically try to buff your raid or party.",
-				enable	= true,
-			},
-			{ 	name	= "Spell Singer",
-				tooltip = "When enabled; Will automatically try to steal valuable spells from your surrounding targets.",
-				enable	= false,
-			},
-			{ 	name	= "Remove Curse",
-				tooltip = "When enabled; Will automatically remove curses from friendly targets.",
-				enable	= false,
-			},
-			{ 	name	= "Polymorph",
-			    tooltip = "When enabled; This setting will allow you to select how you want Polymorph to be used.\n\n When enabled and a mode other than <Keybinding> have been selected, the profile will try and use Polymorph automatically on cooldown.",
-				enable	= false,
-				newSection  = true,
-				widget	= { type = "select",
-					tooltip = "Select how you want Polymorph to behave.",
-					values	= {
-						"Arena",
-						"Focus",
-						"Target",
-						"Mouseover",
-						"Keybinding",
+	-- General Mage Settings
+	LivingBomb = 0
+	
+	if GetSpecialization("player") == 1 then
+	elseif GetSpecialization("player") == 2 then
+	else
+		-- Frost Settings
+		PQ_Icicles = 0
+		
+		-- PQInterface Settings
+		local Defensive = {
+			name	= "Defensive Settings",
+			author	= "Mentally",
+			abilities = {
+				{ 	name	= "Healthstone",
+					tooltip = "When enabled; Allows you to control automatic usage of healthstone at set health %.",
+					enable	= true,
+					widget	= {	type = "numBox",
+						tooltip = "Set the health % value you want Healthstone to be used at.",
+						value	= 50,
+						step	= 5,
 					},
-					width	= 80,
 				},
-			},
-		},
-		hotkeys = {
-			{	name	= "Pause Rotation",
-				enable	= true,
-				hotkeys	= {'lc'},
-			},
-			{	name	= "Level 30 Talent",
-				enable	= false,
-				hotkeys	= {},
-			},
-			{	name	= "Level 45 Talent",
-				enable	= false,
-				hotkeys	= {},
-			},
-			{	name	= "Level 90 Talent",
-				enable	= true,
-				hotkeys	= {'ra'},
-			},
-		},
-	}
-	local Offensive = {
-		name	= "Offensive Settings",
-		author	= "Mentally",
-		abilities = {
-			{ 	name	= "Combat Detection",
-			    tooltip = "Toggle the profile to pause automatically when not engaged in combat.",
-				enable	= true,
-			},
-			{ 	name	= "Spell Queue Type",
-			    tooltip = "This setting allows you to enable and set how you want Spell Queue overriding to work. It will either queue up the spell on the next GCD when you mouseover or click the ability.",
-				enable	= false,
-				newSection  = true,
-				widget	= { type = "select",
-					tooltip = "Select how you want to queue the next spell.",
-					values	= {
-						"Click",
-						"Mouseover",
-						"Command",
+				{ 	name	= "Mana Gem",
+					tooltip = "When enabled; Allows you to control automatic usage of Mana Gem at set mana %.",
+					enable	= true,
+					widget	= {	type = "numBox",
+						tooltip = "Set the mana % value you want Mana Gem to be used at.",
+						value	= 70,
+						step	= 5,
 					},
-					width	= 80,
+				},
+				{ 	name	= "Symbiosis",
+					tooltip = "When enabled; Allows you to control when and how the profile casts Symbiosis on you and your pet.",
+					enable	= true,
+					widget	= { type = "numBox",
+						tooltip = "Set the health % value you want Symbiosis to be cast at.",
+						value	= 25,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Raid Buffing",
+					tooltip = "When enabled; Will automatically try to buff your raid or party.",
+					enable	= true,
+				},
+				{ 	name	= "Spell Singer",
+					tooltip = "When enabled; Will automatically try to steal valuable spells from your surrounding targets.",
+					enable	= false,
+				},
+				{ 	name	= "Remove Curse",
+					tooltip = "When enabled; Will automatically remove curses from friendly targets.",
+					enable	= false,
+				},
+				{ 	name	= "Polymorph",
+					tooltip = "When enabled; This setting will allow you to select how you want Polymorph to be used.\n\n When enabled and a mode other than <Keybinding> have been selected, the profile will try and use Polymorph automatically on cooldown.",
+					enable	= false,
+					newSection  = true,
+					widget	= { type = "select",
+						tooltip = "Select how you want Polymorph to behave.",
+						values	= {
+							"Arena",
+							"Focus",
+							"Target",
+							"Mouseover",
+							"Keybinding",
+						},
+						width	= 80,
+					},
 				},
 			},
-			{ 	name	= "Auto Potion",
-			    tooltip = "Toggle the use of Potion of the Jade Serpent under the effects of Bloodlust/Heroism/Time Warp/Ancient Hysteria.",
-				enable	= true,
-				newSection  = true,
+			hotkeys = {
+				{	name	= "Pause Rotation",
+					enable	= true,
+					hotkeys	= {'lc'},
+				},
+				{	name	= "Level 30 Talent",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Level 45 Talent",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Level 90 Talent",
+					enable	= true,
+					hotkeys	= {'ra'},
+				},
 			},
-			{ 	name	= "Auto Racials",
-			    tooltip = "Toggle the automatic usage of Racials.",
-				enable	= true,
+		}
+		local Offensive = {
+			name	= "Offensive Settings",
+			author	= "Mentally",
+			abilities = {
+				{ 	name	= "Combat Detection",
+					tooltip = "Toggle the profile to pause automatically when not engaged in combat.",
+					enable	= true,
+				},
+				{ 	name	= "Spell Queue Type",
+					tooltip = "This setting allows you to enable and set how you want Spell Queue overriding to work. It will either queue up the spell on the next GCD when you mouseover or click the ability.",
+					enable	= false,
+					newSection  = true,
+					widget	= { type = "select",
+						tooltip = "Select how you want to queue the next spell.",
+						values	= {
+							"Click",
+							"Mouseover",
+							"Command",
+						},
+						width	= 80,
+					},
+				},
+				{ 	name	= "Auto Potion",
+					tooltip = "Toggle the use of Potion of the Jade Serpent under the effects of Bloodlust/Heroism/Time Warp/Ancient Hysteria.",
+					enable	= true,
+					newSection  = true,
+				},
+				{ 	name	= "Auto Racials",
+					tooltip = "Toggle the automatic usage of Racials.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Alter Time",
+					tooltip = "Toggle the automatic usage of Alter Time.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Icy Veins",
+					tooltip = "Toggle the automatic usage of Icy Veins.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Mirror Image",
+					tooltip = "Toggle the automatic usage of Mirror Image.",
+					enable	= true,
+				},
+				{ 	name	= "Frag Belt",
+					tooltip = "Toggle the use of automatic Frag Belt.",
+					enable	= true,
+				},
+				{ 	name	= "Boss Cooldown",
+					tooltip = "Toggle the use of cooldowns on boss targets only.",
+					enable	= true,
+					newSection  = true,
+				},
+				{ 	name	= "Focus Dotting",
+					tooltip = "Toggle Automatic dotting of the focus target.",
+					enable	= true,
+					newSection  = true,
+				},
+				{ 	name	= "Auto Boss Dotting",
+					tooltip = "Toggle the Automatic dotting of all feasible boss targets you're currently engaged with.",
+					enable	= true,
+				},
+				{ 	name	= "Mouseover Dotting",
+					tooltip = "Toggle Automatic dotting of the mouseover target.",
+					enable	= true,
+				},
 			},
-			{ 	name	= "Auto Alter Time",
-			    tooltip = "Toggle the automatic usage of Alter Time.",
-				enable	= true,
+			hotkeys = {
+				{	name	= "Toggle Hold Cooldown",
+					tooltip = "Select the keybind for the usage of holding cooldowns.",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "AOE Mode",
+					tooltip = "Select the keybinding you wish to cast AoE Spells with!\n\nThis includes Flamestrike and Blizzard on mouseover location.",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Icy Veins",
+					tooltip = "Select the keybind to use Icy Veins with.",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Alter Time",
+					tooltip = "Select the keybind to use Alter Time with.",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Pet (Freeze)",
+					tooltip = "Select the keybind to use your Pet's Freeze ability with. (Mouseover location)",
+					enable	= true,
+					hotkeys	= {'ls'},
+				},
 			},
-			{ 	name	= "Auto Icy Veins",
-			    tooltip = "Toggle the automatic usage of Icy Veins.",
-				enable	= true,
-			},
-			{ 	name	= "Auto Mirror Image",
-			    tooltip = "Toggle the automatic usage of Mirror Image.",
-				enable	= true,
-			},
-			{ 	name	= "Frag Belt",
-			    tooltip = "Toggle the use of automatic Frag Belt.",
-				enable	= true,
-			},
-			{ 	name	= "Boss Cooldown",
-			    tooltip = "Toggle the use of cooldowns on boss targets only.",
-				enable	= true,
-				newSection  = true,
-			},
-			{ 	name	= "Focus Dotting",
-			    tooltip = "Toggle Automatic dotting of the focus target.",
-				enable	= true,
-				newSection  = true,
-			},
-			{ 	name	= "Auto Boss Dotting",
-			    tooltip = "Toggle the Automatic dotting of all feasible boss targets you're currently engaged with.",
-				enable	= true,
-			},
-			{ 	name	= "Mouseover Dotting",
-			    tooltip = "Toggle Automatic dotting of the mouseover target.",
-				enable	= true,
-			},
-		},
-		hotkeys = {
-			{	name	= "Toggle Hold Cooldown",
-			    tooltip = "Select the keybind for the usage of holding cooldowns.",
-				enable	= false,
-				hotkeys	= {},
-			},
-			{	name	= "AOE Mode",
-				tooltip = "Select the keybinding you wish to cast AoE Spells with!\n\nThis includes Flamestrike and Blizzard on mouseover location.",
-				enable	= false,
-				hotkeys	= {},
-			},
-			{	name	= "Icy Veins",
-			    tooltip = "Select the keybind to use Icy Veins with.",
-				enable	= false,
-				hotkeys	= {},
-			},
-			{	name	= "Alter Time",
-			    tooltip = "Select the keybind to use Alter Time with.",
-				enable	= false,
-				hotkeys	= {},
-			},
-			{	name	= "Pet (Freeze)",
-			    tooltip = "Select the keybind to use your Pet's Freeze ability with. (Mouseover location)",
-				enable	= true,
-				hotkeys	= {'ls'},
-			},
-		},
-	}
-	HYSTERIA_MAGE_DEF = PQI:AddRotation(Defensive)
-	HYSTERIA_MAGE_OFF = PQI:AddRotation(Offensive)
+		}
+		HYSTERIA_MAGE_DEF = PQI:AddRotation(Defensive)
+		HYSTERIA_MAGE_OFF = PQI:AddRotation(Offensive)
+	end
 	
 	-- Skills
 	PQ_Frostbolt	= 116		-- Frostbolt
@@ -1180,6 +1203,12 @@ if select(2, UnitClass("player")) == "MAGE" then
 	PQ_Ward			= 1463		-- Incanter's Ward
 elseif select(2, UnitClass("player")) == "PRIEST" then
 	PQR_WriteToChat("|cffFFBE69Loading |cffffffffPriest|cffFFBE69 Tables ...|cffffffff")
+	
+	-- Shadow Settings
+	flayTicks = 0
+	maxFlayTicks = 3
+	insanityTicks = 0
+	maxInsanityTicks = 3
 	
 	-- PQInterface Settings
 	local Defensive = {
