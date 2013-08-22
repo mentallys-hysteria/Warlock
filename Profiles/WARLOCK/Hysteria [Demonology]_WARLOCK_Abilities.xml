@@ -49,11 +49,7 @@ if PQR_RotationStarted then
 		Hysteria:Show()
 		
 		-- Demonology Settings
-		Trinket = 0
 		burnFury = false
-		
-		-- Initialize Dot Tracker
-		if not dotTracker then dotTracker = {} end
 		
 		mentallyDemoFirstStart = true
 		PQR_WriteToChat(&amp;quot;|cff9482C9Hysteria Demonology Warlock data is |cff82cee7Loaded!|cffffffff&amp;quot;)
@@ -239,6 +235,7 @@ if PQI_MentallyOffensiveSettings_GrimoirePet_enable then
 	-- Try not to spam the ability.
 	if IsFlying() then return false end
 	if IsFalling() then return false end
+	if not PQR_SpellAvailable(petSummon) then return false end
 	if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_Sacrifice) then
 		if UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(petSummon) then
 			if UnitExists(&amp;quot;pet&amp;quot;) and not UnitIsDeadOrGhost(&amp;quot;pet&amp;quot;) then
@@ -250,7 +247,7 @@ if PQI_MentallyOffensiveSettings_GrimoirePet_enable then
 	
 	-- Grimoire of Sacrifice
 	if IsPlayerSpell(PQ_Sacrifice) then
-		if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_Sacrifice) then
+		if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_Sacrifice) and PQR_SpellAvailable(PQ_Sacrifice) then
 			if not UnitExists(&amp;quot;pet&amp;quot;) then
 				CastSpellByName(GetSpellInfo(petSummon),&amp;quot;player&amp;quot;) return true
 			else
@@ -700,6 +697,15 @@ local ShadowflameCD = select(3,GetSpellCharges(PQ_GulDan)) + select(4,GetSpellCh
 
 -- Pause the usage of this ability.
 if holdAbility then return false end
+
+-- Shadowflame is Glyphed
+if IsPlayerSpell(63310) then
+	if PQR_SpellAvailable(PQ_GulDan) then
+		SpellCancelQueuedSpell()
+		CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
+		return true
+	end
+end
 
 if isAOE or isOmni and OmniAoE then
 	if not PQI_MentallyOffensiveSettings_AoESelection_enable then return false end
@@ -1153,7 +1159,9 @@ if isAOE or OmniAoE then
 else
 	if not forceMeta then
 		-- Don&amp;apos;t enter Metamorphosis until after Hand of Gul&amp;apos;dan
-		if not Doom and GetSpellCharges(PQ_GulDan) &amp;gt; 0 then return false end
+		if not IsPlayerSpell(63310) then
+			if not Doom and GetSpellCharges(PQ_GulDan) &amp;gt; 0 then return false end
+		end
 		if not UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;) then return false end
 		
 		-- Iron Qon and Twin Consorts
@@ -1174,9 +1182,11 @@ else
 		end
 		
 		-- Weave Metamorphosis with minimum Fury cap
-		if GetSpellCharges(PQ_GulDan) == 0 and ShadowflameCD &amp;gt; 4 and fury &amp;gt; 500 then
-			SpellCancelQueuedSpell()
-			CastShapeshiftForm(1) return true
+		if not IsPlayerSpell(63310) then
+			if GetSpellCharges(PQ_GulDan) == 0 and ShadowflameCD &amp;gt; 4 and fury &amp;gt; 500 then
+				SpellCancelQueuedSpell()
+				CastShapeshiftForm(1) return true
+			end
 		end
 		
 		-- Enter Metamorphosis to rebuild Corruption
@@ -1279,7 +1289,9 @@ else
 	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) then return false end
 	
 	-- Shadowflame (2)
-	if Shadowflame and ShadowCount &amp;gt; 1 then return false end
+	if not IsPlayerSpell(63310) then
+		if Shadowflame and ShadowCount &amp;gt; 1 then return false end
+	end
 	
 	-- Doom
 	if UnitExists(&amp;quot;target&amp;quot;) then
@@ -1688,7 +1700,9 @@ local warlockT15 = warlockT15
 local PQ_SoulFire = PQ_SoulFire
 local PQ_ImmoAura = PQ_ImmoAura
 local TargetValidation = TargetValidation
+local Hysteria_UnitInfo = Hysteria_UnitInfo
 local Hysteria_CastCheck = Hysteria_CastCheck
+local fury = select(5,Hysteria_UnitInfo(&amp;quot;player&amp;quot;))
 
 -- Only enable for boss-units.
 if not SpecialUnit() then return false end
@@ -1712,6 +1726,10 @@ if not PQR_SpellAvailable(PQ_SoulFire) then return false end
 
 -- Cast Soul Fire during Immolation Aura
 if PQI_MentallyOffensiveSettings_SoulFirewithImmoAura_enable then
+	if itemCheck(warlockT15) &amp;gt;= 2 then
+		if fury &amp;lt; 56 then return false end
+	else if fury &amp;lt; 80 then return false end end
+	
 	if Hysteria_CastCheck(PQ_SoulFire,PQ_ImmoAura) then
 		if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end
 	end
@@ -1720,6 +1738,8 @@ end
 -- Cast Soul Fire during Dark Soul
 if itemCheck(warlockT15) &amp;gt;= 2 then
 	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) and Hysteria_CastCheck(PQ_SoulFire,PQ_DSK) then
+		if fury &amp;lt; 56 then return false end
+		
 		if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
 			return true
 		end
