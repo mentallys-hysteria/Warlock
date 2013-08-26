@@ -2,18 +2,18 @@
 -- Functions & Variables
 ------------------------
 Version = 2
-Minor = 6
+Minor = 8
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 8/15/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 8/26/2013|cffffffff")
 end
 
 -- Initialize Dot Tracker
 if not dotTracker then dotTracker = {} end
 
 -- General Settings
-SCD = false
+if not SCD then SCD = false end
 Trinket = 0
 
 -- Aura Info function.
@@ -1008,7 +1008,7 @@ if select(2, UnitClass("player")) == "MAGE" then
 					tooltip = "When enabled; Will automatically remove curses from friendly targets.",
 					enable	= false,
 				},
-				{ 	name	= "Polymorph",
+				--[[{ 	name	= "Polymorph",
 					tooltip = "When enabled; This setting will allow you to select how you want Polymorph to be used.\n\n When enabled and a mode other than <Keybinding> have been selected, the profile will try and use Polymorph automatically on cooldown.",
 					enable	= false,
 					newSection  = true,
@@ -1023,7 +1023,7 @@ if select(2, UnitClass("player")) == "MAGE" then
 						},
 						width	= 80,
 					},
-				},
+				},]]
 			},
 			hotkeys = {
 				{	name	= "Pause Rotation",
@@ -1155,6 +1155,7 @@ if select(2, UnitClass("player")) == "MAGE" then
 	PQ_Fireball		= 133		-- Fireball
 	PQ_Blizzard		= 10		-- Blizzard
 	PQ_Freeze		= 33395		-- Pet: Freeze
+	PQ_Explosion	= 1449		-- Arcane Explosion
 	
 	-- Cooldowns
 	PQ_IB			= 45438		-- Ice Block
