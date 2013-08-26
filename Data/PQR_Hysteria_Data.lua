@@ -13,6 +13,7 @@ end
 if not dotTracker then dotTracker = {} end
 
 -- General Settings
+if not stopRotation then stopRotation = false end
 if not SCD then SCD = false end
 Trinket = 0
 
@@ -568,6 +569,9 @@ function HysteriaFrame_OnEvent(self,event,...)
 				
 				-- Living Bomb fell off a target
 				if spellID == PQ_LB then LivingBomb = LivingBomb - 1 end
+				
+				-- Evocation done channeling
+				if spellID == PQ_Evo then stopRotation = false end
 			end
 		end
 		
@@ -609,6 +613,9 @@ function HysteriaFrame_OnEvent(self,event,...)
 				
 				-- Living Bomb applied to any target
 				if spellID == PQ_LB then LivingBomb = LivingBomb + 1 end
+				
+				-- Evocation done channeling
+				if spellID == PQ_Evo then stopRotation = true end
 			end
 		end
 		
