@@ -96,8 +96,17 @@ end
 DrainLife = false
 HFunnel = false
 
--- Halt or Stop the profile under certain conditions
-if IsMounted() then return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Cast Cancel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>------------------------------------------------------------
+-- We want to pause the entire profile when we&amp;apos;re doing certain things..
+if UnitIsDeadOrGhost(&amp;quot;player&amp;quot;)		-- Snap! Deaded
+	or UnitBuffID(&amp;quot;player&amp;quot;,104934)	-- Eating (Feast/Banquet)
+	or UnitBuffID(&amp;quot;player&amp;quot;,80169)	-- Eating Normal
+	or UnitBuffID(&amp;quot;player&amp;quot;,87959)	-- Drinking Normal
+	or UnitBuffID(&amp;quot;player&amp;quot;,11392)	-- 18 sec Invis Pot (for CMs)
+	or UnitBuffID(&amp;quot;player&amp;quot;,3680)	-- 15 sec Invis pot  (for CMs)
+	or IsMounted()					-- Mounted, lol. Get it?
+	or IsFlying()					-- How high?!
+	or IsFalling()					-- ... Really?
+then return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Cast Cancel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>------------------------------------------------------------
 -- Cancel unwanted casts, channels or buffs.
 ------------------------
 
@@ -319,22 +328,16 @@ local SpecialUnit = SpecialUnit
 -- Herbalism&amp;apos;s Lifeblood
 PQ_Lifeblood = {81708,74497,121279,55428,55480,55500,55501,55502,55503}
 
+-- Did we enable boss only CDs?
+if PQI_MentallyOffensiveSettings_BossCooldown_enable then
+	if not SpecialUnit() then return false end
+end
+
 for i=1,#PQ_Lifeblood do
 	if IsPlayerSpell(PQ_Lifeblood[i])
 		and PQR_SpellAvailable(PQ_Lifeblood[i])
-		and SpecialUnit()
 		and not SCD
-	then
-		if not PQI_MentallyOffensiveSettings_BossCooldown_enable then
-			CastSpellByName(GetSpellInfo(PQ_Lifeblood[i]),&amp;quot;player&amp;quot;)
-			return true
-		else
-			if SpecialUnit() then
-				CastSpellByName(GetSpellInfo(PQ_Lifeblood[i]),&amp;quot;player&amp;quot;)
-				return true
-			end
-		end
-	end
+	then CastSpellByName(GetSpellInfo(PQ_Lifeblood[i]),&amp;quot;player&amp;quot;) return true end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Racials</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local SCD = SCD
 local SpecialUnit = SpecialUnit
 local Hysteria_UnitInfo = Hysteria_UnitInfo
@@ -348,21 +351,18 @@ if IsPlayerSpell(59544) and PQR_SpellAvailable(59544) and Hysteria_UnitInfo(&amp
 	return true
 end
 
+-- Did we enable boss only CDs?
+if PQI_MentallyOffensiveSettings_BossCooldown_enable then
+	if not SpecialUnit() then return false end
+end
+
 -- Troll: Berserking
 if IsPlayerSpell(26297) and not SCD then
 	if PQR_SpellAvailable(26297) then
-		if not PQI_MentallyOffensiveSettings_BossCooldown_enable then
-			if UnitExists(&amp;quot;target&amp;quot;) then
-				SpellCancelQueuedSpell()
-				CastSpellByName(GetSpellInfo(26297),&amp;quot;player&amp;quot;)
-				return true
-			end
-		else
-			if SpecialUnit() then
-				SpellCancelQueuedSpell()
-				CastSpellByName(GetSpellInfo(26297),&amp;quot;player&amp;quot;)
-				return true
-			end
+		if UnitExists(&amp;quot;target&amp;quot;) then
+			SpellCancelQueuedSpell()
+			CastSpellByName(GetSpellInfo(26297),&amp;quot;player&amp;quot;)
+			return true
 		end
 	end
 end
@@ -380,18 +380,10 @@ end
 -- Orc: Blood Fury
 if IsPlayerSpell(33702) and not SCD then
 	if PQR_SpellAvailable(33702) then
-		if not PQI_MentallyOffensiveSettings_BossCooldown_enable then
-			if UnitExists(&amp;quot;target&amp;quot;) then
-				SpellCancelQueuedSpell()
-				CastSpellByName(GetSpellInfo(33702),&amp;quot;player&amp;quot;)
-				return true
-			end
-		else
-			if SpecialUnit() then
-				SpellCancelQueuedSpell()
-				CastSpellByName(GetSpellInfo(33702),&amp;quot;player&amp;quot;)
-				return true
-			end
+		if UnitExists(&amp;quot;target&amp;quot;) then
+			SpellCancelQueuedSpell()
+			CastSpellByName(GetSpellInfo(33702),&amp;quot;player&amp;quot;)
+			return true
 		end
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Imp Swarm</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local T2D = T2D
@@ -434,6 +426,7 @@ if IsPlayerSpell(PQ_DSK)
 	and PQI:IsHotkeys(PQI_MentallyOffensiveSettings_DarkSoul_key)
 	and not GetCurrentKeyBoardFocus()
 then
+	mentalMessage:message(&amp;quot;\124cFFAADD00Casting: Dark Soul&amp;quot;)
 	CastSpellByName(GetSpellInfo(PQ_DSK),&amp;quot;player&amp;quot;)
 	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Grimoire of Service</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_DSK = PQ_DSK
@@ -471,17 +464,19 @@ if IsFlying() then return false end
 if IsFalling() then return false end
 if not PQR_SpellAvailable(petSummon) then return false end
 
+-- Did we enable boss only CDs?
+if PQI_MentallyOffensiveSettings_BossCooldown_enable then
+	if not SpecialUnit() then return false end
+end
+
 -- Grimoire of Service
 if IsPlayerSpell(PQ_Service) then
 	-- Pause the usage of this ability.
 	if holdAbility then return false end
 	
 	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
-		if PQI_MentallyOffensiveSettings_BossCooldown_enable then
-		   if SpecialUnit() then
-				CastSpellByName(GetSpellInfo(petSummon),&amp;quot;target&amp;quot;) return true
-		   end
-		else CastSpellByName(GetSpellInfo(petSummon),&amp;quot;target&amp;quot;) return true end
+		mentalMessage:message(&amp;quot;\124cFFAADD00Casting: Grimoire of Service&amp;quot;)
+		CastSpellByName(GetSpellInfo(petSummon),&amp;quot;target&amp;quot;) return true
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Command Demon</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Service = PQ_Service
 local holdAbility = holdAbility
@@ -526,6 +521,7 @@ if IsPlayerSpell(PQ_Service) then
 		and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1
 	then
 		if PQR_SpellAvailable(89751) and IsSpellInRange(GetSpellInfo(30213),&amp;quot;target&amp;quot;) == 1 then
+			mentalMessage:message(&amp;quot;\124cFFAADD00Casting: Fell Storm&amp;quot;)
 			CastSpellByName(GetSpellInfo(119914),&amp;quot;target&amp;quot;)
 			return true
 		end
@@ -539,6 +535,7 @@ if IsPlayerSpell(PQ_Supremacy) then
 		and UnitCanAttack(&amp;quot;player&amp;quot;, &amp;quot;target&amp;quot;) == 1
 	then
 		if PQR_SpellAvailable(115831) and IsSpellInRange(GetSpellInfo(115625),&amp;quot;target&amp;quot;) == 1 then
+			mentalMessage:message(&amp;quot;\124cFFAADD00Casting: Wrath Storm&amp;quot;)
 			CastSpellByName(GetSpellInfo(119898),&amp;quot;target&amp;quot;)
 			return true
 		end
@@ -564,7 +561,6 @@ local mentallyPower = mentallyPower
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 
 -- PQI Setting integration
-
 if PQI_MentallyOffensiveSettings_Doomguard_enable
    and PQI:IsHotkeys(PQI_MentallyOffensiveSettings_Doomguard_key) then
    if IsPlayerSpell(PQ_Supremacy) then
@@ -574,8 +570,13 @@ if PQI_MentallyOffensiveSettings_Doomguard_enable
    end
 end
 
+-- Did we enable boss only CDs?
+if PQI_MentallyOffensiveSettings_BossCooldown_enable then
+	if not SpecialUnit() then return false end
+end
+
 if PQI_MentallyOffensiveSettings_AutoDoomguard_enable then
-   if SpecialUnit() and Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 21 or mentallyPower() &amp;gt;= 9 then
+   if Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;lt;= 21 or mentallyPower() &amp;gt;= 9 then
       if IsPlayerSpell(PQ_Supremacy) then
 	     if PQR_SpellAvailable(PQ_STG) then CastSpellByName(GetSpellInfo(PQ_STG),&amp;quot;target&amp;quot;) return true end
       else
@@ -857,7 +858,9 @@ if GetItemCooldown(Gloves) &amp;gt; 0 then return false end
 if PQR_SpellAvailable(PQ_DSK) or DSCD &amp;lt; 30 then return false end
 
 -- Cast Engineering Gloves
-if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then UseItemByName(Gloves) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Soulstone</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Soulstone = PQ_Soulstone
+if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
+	mentalMessage:message(&amp;quot;\124cFFAADD00Used: Synapse Springs&amp;quot;)
+	UseItemByName(Gloves) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Soulstone</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_Soulstone = PQ_Soulstone
 
 -- Soulstone Settings
 if not PQI_MentallyDefensiveSettings_Soulstone_enable then return false end

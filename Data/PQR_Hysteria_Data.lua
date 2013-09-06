@@ -1,12 +1,12 @@
 ------------------------------------------------------------
 -- Functions & Variables
 ------------------------
-Version = 2
-Minor = 8
+Version = 3
+Minor = 0
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 8/26/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 09/07/2013|cffffffff")
 end
 
 -- Initialize Dot Tracker
@@ -20,7 +20,7 @@ Trinket = 0
 -- Aura Info function.
 buffs = {
 	stat 		=	{ 90363, 20217,	115921, 1126 },
-	stamina		= 	{ 469, 90364, 109773, 21562},
+	stamina		= 	{ 469, 90364, 109773, 21562 },
 	atkpwr		= 	{ 19506, 57330,	6673 },
 	atkspeed	=	{ 55610, 113742, 30809, 128432, 128433 },
 	spllpwr		=	{ 77747, 109773, 126309, 61316, 1459 },
@@ -363,7 +363,7 @@ function disableDoom(unit)
 			if disableDoom[i] == npcID then return true end
 		end
 		return false
-	end
+	else return false end
 end
 
 -- Unit Information Function
@@ -456,7 +456,18 @@ function HysteriaFrame_OnEvent(self,event,...)
 		end
 		
 		-- Successfull Spell Casts
-		if subEvent == "SPELL_CAST_START" then end
+		if subEvent == "SPELL_CAST_SUCCESS" then
+			if UnitName("player") == source then
+				if spellID == PQ_Evo then stopRotation = true end
+			end
+		end
+		
+		-- Unsuccessfull Spell Casts
+		if subEvent == "SPELL_CAST_FAILED" then
+			if UnitName("player") == source then
+				if spellID == PQ_Evo then stopRotation = false end
+			end
+		end
 		
 		-- Periodic Damage Events
 		if subEvent == "SPELL_PERIODIC_DAMAGE" then
@@ -526,6 +537,9 @@ function HysteriaFrame_OnEvent(self,event,...)
 				insanityTicks = 0
 				maxInsanityTicks = 4
 			end
+			
+			-- Invoker's Energy refreshed on us
+			if UnitName("player") == source and spellID == PQ_InvoBuff then stopRotation = false end
 		end
 		
 		-- Removed Aura Events
@@ -569,9 +583,6 @@ function HysteriaFrame_OnEvent(self,event,...)
 				
 				-- Living Bomb fell off a target
 				if spellID == PQ_LB then LivingBomb = LivingBomb - 1 end
-				
-				-- Evocation done channeling
-				if spellID == PQ_Evo then stopRotation = false end
 			end
 		end
 		
@@ -614,8 +625,8 @@ function HysteriaFrame_OnEvent(self,event,...)
 				-- Living Bomb applied to any target
 				if spellID == PQ_LB then LivingBomb = LivingBomb + 1 end
 				
-				-- Evocation done channeling
-				if spellID == PQ_Evo then stopRotation = true end
+				-- Invoker's Energy applied
+				if spellID == PQ_InvoBuff then stopRotation = false end
 			end
 		end
 		
@@ -1002,6 +1013,23 @@ if select(2, UnitClass("player")) == "MAGE" then
 						value	= 25,
 						step	= 5,
 					},
+				},
+				{ 	name	= "Auto Ice Barrier",
+					tooltip = "When enabled; Will automatically use Ice Barrier on cooldown on you when talented.",
+					enable	= true,
+				},
+				{ 	name	= "Ice Block",
+					tooltip = "When enabled; Will use Ice Block at set health %.",
+					enable	= true,
+					widget	= { type = "numBox",
+						tooltip = "Set the health % value you want Ice Block to be cast at.",
+						value	= 35,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Wipe Cauterize",
+					tooltip = "When enabled; Will cast Ice Block to wipe Cauterize's burn effect.",
+					enable	= true,
 				},
 				{ 	name	= "Raid Buffing",
 					tooltip = "When enabled; Will automatically try to buff your raid or party.",
@@ -1881,4 +1909,28 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_GSuccubus	= 111896	-- Grimoire: Succubus
 	PQ_GFelhunter	= 111897	-- Grimoire: Felhunter
 	PQ_GFelguard	= 111898	-- Grimoire: Felguard
+end
+
+-- Chat Notification Frame
+local function onUpdate(self, ...)
+	if self.time < GetTime() - 3 then
+		if self:GetAlpha() == 0 then self:Hide() else self:SetAlpha(self:GetAlpha() - .05) end
+	end
+end
+mentalMessage = CreateFrame("Frame",nil,ChatFrame1)
+mentalMessage:Hide()
+mentalMessage.time = 0
+mentalMessage:SetPoint("TOP",0,0)
+mentalMessage.texture = mentalMessage:CreateTexture()
+mentalMessage.text = mentalMessage:CreateFontString(nil,"OVERLAY","GameFontHighlightLarge")
+mentalMessage.text:SetAllPoints()
+mentalMessage.texture:SetAllPoints()
+mentalMessage.texture:SetTexture(0,0,0,.8)
+mentalMessage:SetScript("OnUpdate",onUpdate)
+mentalMessage:SetSize(ChatFrame1:GetWidth(),30)
+function mentalMessage:message(message)
+	self.text:SetText(message)
+	self:SetAlpha(1)
+	self.time = GetTime()
+	self:Show()
 end
