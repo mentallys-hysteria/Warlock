@@ -462,13 +462,6 @@ function HysteriaFrame_OnEvent(self,event,...)
 			end
 		end
 		
-		-- Unsuccessfull Spell Casts
-		if subEvent == "SPELL_CAST_FAILED" then
-			if UnitName("player") == source then
-				if spellID == PQ_Evo then stopRotation = false end
-			end
-		end
-		
 		-- Periodic Damage Events
 		if subEvent == "SPELL_PERIODIC_DAMAGE" then
 			-- Catch Ignite
@@ -539,7 +532,7 @@ function HysteriaFrame_OnEvent(self,event,...)
 			end
 			
 			-- Invoker's Energy refreshed on us
-			if UnitName("player") == source and spellID == PQ_InvoBuff then stopRotation = false end
+			if UnitName("player") == source and spellID == PQ_InvoBuff then invokeTimer = false stopRotation = false end
 		end
 		
 		-- Removed Aura Events
@@ -583,6 +576,9 @@ function HysteriaFrame_OnEvent(self,event,...)
 				
 				-- Living Bomb fell off a target
 				if spellID == PQ_LB then LivingBomb = LivingBomb - 1 end
+				
+				-- Evocation somehow interrupted, or something, continue with the profile.
+				if spellID == PQ_Evo then invokeTimer = GetTime() end
 			end
 		end
 		
@@ -626,7 +622,7 @@ function HysteriaFrame_OnEvent(self,event,...)
 				if spellID == PQ_LB then LivingBomb = LivingBomb + 1 end
 				
 				-- Invoker's Energy applied
-				if spellID == PQ_InvoBuff then stopRotation = false end
+				if spellID == PQ_InvoBuff then invokeTimer = false stopRotation = false end
 			end
 		end
 		
