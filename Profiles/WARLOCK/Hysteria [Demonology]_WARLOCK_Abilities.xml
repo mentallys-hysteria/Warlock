@@ -74,10 +74,6 @@ PQR_SpellAvailableTime = ((select(3,GetNetStats()) + select(4,GetNetStats())) / 
 local PQ_KC = PQ_KC
 if IsPlayerSpell(PQ_KC) then KJcunning = true else KJcunning = false end
 
--- Initialize Glyphs
-local PQ_EA = 118778
-if IsPlayerSpell(PQ_EA) then EA = 1.5 MP = 3 else EA = 1 MP = 2 end
-
 -- Initialize Trinkets
 local itemCheck = itemCheck
 local visionTrinket = visionTrinket
@@ -104,20 +100,18 @@ if UnitIsDeadOrGhost(&amp;quot;player&amp;quot;)		-- Snap! Deaded
 	or UnitBuffID(&amp;quot;player&amp;quot;,11392)	-- 18 sec Invis Pot (for CMs)
 	or UnitBuffID(&amp;quot;player&amp;quot;,3680)	-- 15 sec Invis pot  (for CMs)
 	or IsMounted()					-- Mounted, lol. Get it?
-	or IsFlying()					-- How high?!
-	or IsFalling()					-- ... Really?
 then return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Cast Cancel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>------------------------------------------------------------
 -- Cancel unwanted casts, channels or buffs.
 ------------------------
 
 -- Soul Fire
 local PQ_MCore = PQ_MCore
-local PQ_HasHero = PQ_HasHero
 local OmniAoE = OmniAoE
 local PQ_SoulFire = PQ_SoulFire
-local castTime = select(7,GetSpellInfo(PQ_SoulFire))/1000
-if castTime &amp;gt; 2.5 and UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_SoulFire)
-	and GetShapeshiftForm(&amp;quot;player&amp;quot;) ~= 0 then RunMacroText(&amp;quot;/stopcasting&amp;quot;) return true end
+if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then
+	if UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_SoulFire)
+		then RunMacroText(&amp;quot;/stopcasting&amp;quot;) return true end
+end
 
 if isOmni and OmniAoE then return false end
 
@@ -142,16 +136,26 @@ local PQ_AuraInfo = PQ_AuraInfo
 
 if UnitCastingInfo(&amp;quot;player&amp;quot;) or UnitChannelInfo(&amp;quot;player&amp;quot;) then return false end
 
--- Soul Link
-if IsPlayerSpell(PQ_Soul) then
-	if UnitExists(&amp;quot;pet&amp;quot;) and not UnitIsDeadOrGhost(&amp;quot;pet&amp;quot;) and not UnitBuffID(&amp;quot;player&amp;quot;,PQ_Soul) then
-		CastSpellByName(GetSpellInfo(PQ_Soul),&amp;quot;player&amp;quot;) return true
-	end
-end
-
 -- Dark Intent
 if IsPlayerSpell(PQ_DI) and not PQ_AuraInfo(5,&amp;quot;player&amp;quot;) then
 	CastSpellByName(GetSpellInfo(PQ_DI),&amp;quot;player&amp;quot;) return true
+end
+
+-- Mannoroth&amp;apos;s Fury
+if PQI_MentallyOffensiveSettings_AutoMannorothsFury_enable then
+	local PQ_MF = PQ_MF
+	local PQ_ImmoAura = PQ_ImmoAura
+	local PQ_Hellfire = PQ_Hellfire
+	
+	if not IsPlayerSpell(PQ_MF) then return false end
+	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_MF) then return false end
+	if not PQR_SpellAvailable(PQ_MF) then return false end
+	
+	if isAOE or (isOmni and OmniAoE) then
+		if UnitBuffID(&amp;quot;player&amp;quot;,PQ_ImmoAura) or UnitChannelInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Hellfire) then
+			CastSpellByName(GetSpellInfo(PQ_MF),&amp;quot;player&amp;quot;) return true
+		end
+	end
 end
 
 -- Dark Intent: Raid Buffing
@@ -182,6 +186,8 @@ local v=PQI_MentallyOffensiveSettings_SummonPet_value or 5
 
 -- When GoSac is selected, we have nothing here to do.
 if IsPlayerSpell(PQ_Sacrifice) then return false end
+
+if PQR_IsMoving(0.1) then return false end
 
 -- Determine which pet we&amp;apos;re summoning.
 if IsPlayerSpell(PQ_Supremacy) then
@@ -324,6 +330,8 @@ then
 	end
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Herbalism: Lifeblood</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local SCD = SCD
 local SpecialUnit = SpecialUnit
+
+if not UnitAffectingCombat(&amp;quot;player&amp;quot;) then return false end
 
 -- Herbalism&amp;apos;s Lifeblood
 PQ_Lifeblood = {81708,74497,121279,55428,55480,55500,55501,55502,55503}
@@ -589,7 +597,7 @@ local OmniAoE = OmniAoE
 local TargetValidation = TargetValidation
 
 if KJcunning then return false end
-if not PQR_IsMoving(0.3) then return false end
+if not PQR_IsMoving(0.1) then return false end
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 if not PQR_SpellAvailable(PQ_FelFlame) then return false end
 if isOmni and OmniAoE then return false end
@@ -648,6 +656,7 @@ for i=1,4 do
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Soul Fire</Name><Default>false</Default><SpellID>6353</SpellID><Actions></Actions><Lua>local OmniAoE = OmniAoE
 local PQ_MCore = PQ_MCore
 local PQ_SoulFire = PQ_SoulFire
+local spellCooldown = spellCooldown
 local TargetValidation = TargetValidation
 
 -- Omni Mode AOE Check
@@ -656,16 +665,13 @@ if isOmni and OmniAoE then return false end
 -- Don&amp;apos;t cast while in Metamorphosis
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
--- No Molten Core buffs..
-if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then return false end
-
 -- Can&amp;apos;t run and cast
-if not KJcunning then
-	if PQR_IsMoving(0.3) then return false end
-end
+if PQR_IsMoving(0.1) then return false end
 
 -- Soul Fire is on CD
 if not PQR_SpellAvailable(PQ_SoulFire) then return false end
+
+if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then return false end
 
 if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end</Lua><RecastDelay>50</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Corruption</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local T2D = T2D
 local PQ_Cor = PQ_Cor
@@ -788,7 +794,7 @@ if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
 
 -- Can&amp;apos;t run and cast
 if not KJcunning then
-	if PQR_IsMoving(0.3) then return false end
+	if PQR_IsMoving(0.1) then return false end
 end
 
 if moltenCore and moltenCore &amp;gt; 1 then return false end
@@ -866,10 +872,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
 if not PQI_MentallyDefensiveSettings_Soulstone_enable then return false end
 local v=PQI_MentallyDefensiveSettings_Soulstone_value or 2
 
--- Don&amp;apos;t try to cast if we&amp;apos;re moving.
-if not KJcunning then
-	if PQR_IsMoving(0.3) then return false end
-end
+if PQR_IsMoving(0.1) then return false end
 
 -- Stop accessing if we&amp;apos;re casting Soulstone already.
 if UnitCastingInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(PQ_Soulstone) then return false end
@@ -910,32 +913,10 @@ if GetNumGroupMembers() &amp;gt; 0 then
 				end
 		end
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Level 90 Talent</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_AV = PQ_AV
-local PQ_KC = PQ_KC
-local PQ_SoulFire = PQ_SoulFire
-local TargetValidation = TargetValidation
-
-if not PQI_MentallyDefensiveSettings_Level90Talent_enable then return false end
-
-if not PQR_SpellAvailable(PQ_AV) then return false end
-
--- Archimonde&amp;apos;s Vengeance
-if IsPlayerSpell(PQ_AV)
-	and TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire)
-	and not GetCurrentKeyBoardFocus()
-	and PQI:IsHotkeys(PQI_MentallyDefensiveSettings_Level90Talent_key)
-then CastSpellByName(GetSpellInfo(PQ_AV),&amp;quot;target&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Level 45 Talent</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_SP = PQ_SP
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Level 45 Talent</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_SP = PQ_SP
 local PQ_DB = PQ_DB
-local PQ_Soul = PQ_Soul
 
 if not PQI_MentallyDefensiveSettings_Level45Talent_enable then return false end
-
--- Soul Link
-if IsPlayerSpell(PQ_Soul)
-	and PQR_SpellAvailable(PQ_Soul)
-	and not GetCurrentKeyBoardFocus()
-	and PQI:IsHotkeys(PQI_MentallyDefensiveSettings_Level45Talent_key)
-then CastSpellByName(GetSpellInfo(PQ_Soul),&amp;quot;player&amp;quot;) return true end
 
 -- Sacrificial Pact
 if IsPlayerSpell(PQ_SP)
@@ -951,18 +932,18 @@ if IsPlayerSpell(PQ_DB)
 	and PQI:IsHotkeys(PQI_MentallyDefensiveSettings_Level45Talent_key)
 then CastSpellByName(GetSpellInfo(PQ_DB),&amp;quot;player&amp;quot;) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Level 30 Talent</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_MC = PQ_MC
 local PQ_SF = PQ_SF
-local PQ_HOT = PQ_HOT
+local PQ_DBreath = PQ_DBreath
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 
 -- Disabled in PQI
 if not PQI_MentallyDefensiveSettings_Level30Talent_enable then return false end
 
 -- Howl of Terror
-if IsPlayerSpell(PQ_HOT)
-	and PQR_SpellAvailable(PQ_HOT)
+if IsPlayerSpell(PQ_DBreath)
+	and PQR_SpellAvailable(PQ_DBreath)
 	and not GetCurrentKeyBoardFocus()
 	and PQI:IsHotkeys(PQI_MentallyDefensiveSettings_Level30Talent_key)
-then CastSpellByName(GetSpellInfo(PQ_HOT),nil) return true end
+then CastSpellByName(GetSpellInfo(PQ_DBreath),nil) return true end
 
 -- Mortal Coil
 if IsPlayerSpell(PQ_MC)
@@ -982,6 +963,13 @@ then
 	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Healthstone</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-- Disable ability if we disabled it in PQI
 if not PQI_MentallyDefensiveSettings_Healthstone_enable then return false end
+
+if UnitDebuff(&amp;quot;player&amp;quot;,137633)
+	or UnitDebuff(&amp;quot;player&amp;quot;,137552)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142863)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142864)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142865)
+then return false end
 
 local v=PQI_MentallyDefensiveSettings_Healthstone_value
 
@@ -1023,6 +1011,13 @@ end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True<
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local v=PQI_MentallyDefensiveSettings_DarkRegeneration_value
 
+if UnitDebuff(&amp;quot;player&amp;quot;,137633)
+	or UnitDebuff(&amp;quot;player&amp;quot;,137552)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142863)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142864)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142865)
+then return false end
+
 -- Disable ability if we disabled it in PQI
 if not PQI_MentallyDefensiveSettings_DarkRegeneration_enable then return false end
 
@@ -1034,6 +1029,13 @@ local PQ_SoulFire = PQ_SoulFire
 local TargetValidation = TargetValidation
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local v=PQI_MentallyDefensiveSettings_MortalCoil_value
+
+if UnitDebuff(&amp;quot;player&amp;quot;,137633)
+	or UnitDebuff(&amp;quot;player&amp;quot;,137552)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142863)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142864)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142865)
+then return false end
 
 -- Disable ability if we disabled it in PQI
 if not PQI_MentallyDefensiveSettings_MortalCoil_enable then return false end
@@ -1209,7 +1211,7 @@ else
 								if doomTimer - GetTime() &amp;lt; 60 then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
 							end
 							if dotTracker[i].crit == false then
-								if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
+								if doomTimer - GetTime() &amp;lt; 60 * 1.3 then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
 							end
 						else
 							if dotTracker[i].crit == true then
@@ -1217,7 +1219,7 @@ else
 							end
 							if dotTracker[i].crit == false then
 								if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-									if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
+									if doomTimer - GetTime() &amp;lt; 60 * 1.3 / 2 then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
 								end
 								if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then SpellCancelQueuedSpell() CastShapeshiftForm(1) return true end
 							end
@@ -1281,6 +1283,9 @@ if UVLS then
 	end
 end
 
+-- Don&amp;apos;t drop out on Intellect buffs
+if intBuffs &amp;gt; 0 then return false end
+
 -- Forcing Metamorphosis, don&amp;apos;t cancel just yet.
 if forceMeta then return false end
 
@@ -1320,6 +1325,8 @@ else
 			if cleaveCor and cleaveCorTimer - GetTime() &amp;lt; 25 then return false end
 		end
 	end
+	
+	if hasteBuffs &amp;gt; 0 and not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then CancelShapeshiftForm() return true end
 	
 	-- Heroism
 	if PQ_HasHero() and fury &amp;lt; 100 then CancelShapeshiftForm() return true end
@@ -1380,30 +1387,7 @@ if isAOE or (isOmni and OmniAoE) then
 		and GetSpellCharges(PQ_ChaosWave) &amp;gt; 0 then
 			CastSpellByName(GetSpellInfo(PQ_ChaosWave),&amp;quot;target&amp;quot;) return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Harvest Life</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_HL = PQ_HL
-local PQ_SoulFire = PQ_SoulFire
-local OmniAoE = OmniAoE
-local TargetValidation = TargetValidation
-
--- Harvest Life is not a selected talent!
-if not IsPlayerSpell(PQ_HL) then return false end
-
--- Don&amp;apos;t cast in Caster Form
-if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
-
--- Not available for some reason
-if not PQR_SpellAvailable(PQ_HL) then return false end
-
-if isOmni and not OmniAoE then return false end
-
--- Movement..
-if not KJcunning then
-	if PQR_IsMoving(0.3) then return false end
-end
-
-if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
-	CastSpellByName(GetSpellInfo(PQ_HL),&amp;quot;target&amp;quot;) return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Immolation Aura</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_SoulFire = PQ_SoulFire
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Metamorphosis: Immolation Aura</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_SoulFire = PQ_SoulFire
 local PQ_ImmoAura = PQ_ImmoAura
 local OmniAoE = OmniAoE
 local TargetValidation = TargetValidation
@@ -1534,7 +1518,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) and not disableDoom(
 						if doomTimer - GetTime() &amp;lt; 60 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 					end
 					if dotTracker[i].crit == false then
-						if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
+						if doomTimer - GetTime() &amp;lt; 60 * 1.3 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 					end
 				else
 					if dotTracker[i].crit == true then
@@ -1542,7 +1526,7 @@ if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) and not disableDoom(
 					end
 					if dotTracker[i].crit == false then
 						if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 / 2 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 						end
 						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;target&amp;quot;) return true end
 					end
@@ -1585,7 +1569,7 @@ for i=1,5 do
 							if doomTimer - GetTime() &amp;lt; 60 then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 						end
 						if dotTracker[i].crit == false then
-							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 						end
 					else
 						if dotTracker[i].crit == true then
@@ -1593,7 +1577,7 @@ for i=1,5 do
 						end
 						if dotTracker[i].crit == false then
 							if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-								if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
+								if doomTimer - GetTime() &amp;lt; 60 * 1.3 / 2 then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 							end
 							if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),bossUnit) return true end
 						end
@@ -1632,7 +1616,7 @@ if TargetValidation(&amp;quot;focus&amp;quot;,PQ_SoulFire) and not disableDoom(&
 						if doomTimer - GetTime() &amp;lt; 60 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 					end
 					if dotTracker[i].crit == false then
-						if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
+						if doomTimer - GetTime() &amp;lt; 60 * 1.3 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 					end
 				else
 					if dotTracker[i].crit == true then
@@ -1640,7 +1624,7 @@ if TargetValidation(&amp;quot;focus&amp;quot;,PQ_SoulFire) and not disableDoom(&
 					end
 					if dotTracker[i].crit == false then
 						if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 / 2 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 						end
 						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;focus&amp;quot;) return true end
 					end
@@ -1678,7 +1662,7 @@ if TargetValidation(&amp;quot;mouseover&amp;quot;,PQ_SoulFire) and not disableDo
 						if doomTimer - GetTime() &amp;lt; 60 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 					end
 					if dotTracker[i].crit == false then
-						if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
+						if doomTimer - GetTime() &amp;lt; 60 * 1.3 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 					end
 				else
 					if dotTracker[i].crit == true then
@@ -1686,7 +1670,7 @@ if TargetValidation(&amp;quot;mouseover&amp;quot;,PQ_SoulFire) and not disableDo
 					end
 					if dotTracker[i].crit == false then
 						if mentallyPower(603) &amp;gt; dotTracker[i].doomPower then
-							if doomTimer - GetTime() &amp;lt; 60 * 1.3 * EA / MP then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
+							if doomTimer - GetTime() &amp;lt; 60 * 1.3 / 1 then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 						end
 						if doomTimer - GetTime() &amp;lt; dotTracker[i].doom_tick_every then CastSpellByName(GetSpellInfo(PQ_Doom),&amp;quot;mouseover&amp;quot;) return true end
 					end
@@ -1706,6 +1690,7 @@ local TargetValidation = TargetValidation
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local Hysteria_CastCheck = Hysteria_CastCheck
 local fury = select(5,Hysteria_UnitInfo(&amp;quot;player&amp;quot;))
+local corruption = select(7,UnitDebuffID(&amp;quot;target&amp;quot;,PQ_Cor,&amp;quot;PLAYER&amp;quot;))
 
 -- Only enable for boss-units.
 if not SpecialUnit() then return false end
@@ -1720,18 +1705,19 @@ if not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then return false end
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 0 then return false end
 
 -- Don&amp;apos;t run and cast!
-if not KJcunning then
-	if PQR_IsMoving(0.3) then return false end
-end
+if PQR_IsMoving(0.1) then return false end
 
 -- Soul Fire is on CD
 if not PQR_SpellAvailable(PQ_SoulFire) then return false end
+
+-- Check if we need to rebuild Corruption ...
+if corruption and corruption - GetTime() &amp;lt; 15 then return false end
 
 -- Cast Soul Fire during Immolation Aura
 if PQI_MentallyOffensiveSettings_SoulFirewithImmoAura_enable then
 	if itemCheck(warlockT15) &amp;gt;= 2 then
 		if fury &amp;lt; 56 then return false end
-	else if fury &amp;lt; 80 then return false end end
+	else if fury &amp;lt; 180 then return false end end
 	
 	if Hysteria_CastCheck(PQ_SoulFire,PQ_ImmoAura) then
 		if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end
@@ -1739,20 +1725,31 @@ if PQI_MentallyOffensiveSettings_SoulFirewithImmoAura_enable then
 end
 
 -- Cast Soul Fire during Dark Soul
-if itemCheck(warlockT15) &amp;gt;= 2 then
-	if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) and Hysteria_CastCheck(PQ_SoulFire,PQ_DSK) then
-		if fury &amp;lt; 56 then return false end
-		
-		if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then
-			return true
+if UnitBuffID(&amp;quot;player&amp;quot;,PQ_DSK) and Hysteria_CastCheck(PQ_SoulFire,PQ_DSK) then
+	if itemCheck(warlockT15) &amp;gt;= 2 then
+		if fury &amp;gt; 56 and Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;gt; 20 then
+			if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end
 		end
+	else
+		if select(2,GetAverageItemLevel(&amp;quot;player&amp;quot;)) &amp;gt; 550 then
+			if fury &amp;gt; 80 and Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;gt; 20 then
+				if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end
+			end
+		end
+	end
+end
+
+-- Cast Soul Fire during Haste procs
+if hasteBuffs &amp;gt; 0 then
+	if fury &amp;gt; 80 and Hysteria_UnitInfo(&amp;quot;target&amp;quot;) &amp;gt; 20 then
+		if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end
 	end
 end
 
 -- Cast Soul Fire during Execute
 if T2D(&amp;quot;target&amp;quot;) &amp;lt;= 15 then
 	if TargetValidation(&amp;quot;target&amp;quot;,PQ_SoulFire) then return true end
-end</Lua><RecastDelay>2000</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Health Funnel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_GHF = nil
+end</Lua><RecastDelay>50</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Health Funnel</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_GHF = nil
 local PQ_HFunnel = 755
 local HFunnel = HFunnel
 local Hysteria_UnitInfo = Hysteria_UnitInfo
@@ -1761,6 +1758,8 @@ local maxHP = PQI_MentallyDefensiveSettings_HealthFunnelMax_value or 90
 
 -- Disabled in PQInterface
 if not PQI_MentallyDefensiveSettings_HealthFunnel_enable then return false end
+
+if PQR_IsMoving(0.1) then return false end
 
 if Hysteria_UnitInfo(&amp;quot;pet&amp;quot;) &amp;gt;= maxHP then
 	if UnitChannelInfo(&amp;quot;player&amp;quot;) == GetSpellInfo(755) then
@@ -1792,6 +1791,15 @@ local PQ_DrainLife = 689
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local minHP = PQI_MentallyDefensiveSettings_DrainLife_value or 35
 local maxHP = PQI_MentallyDefensiveSettings_DrainLifeMax_value or 75
+
+if UnitDebuff(&amp;quot;player&amp;quot;,137633)
+	or UnitDebuff(&amp;quot;player&amp;quot;,137552)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142863)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142864)
+	or UnitDebuff(&amp;quot;player&amp;quot;,142865)
+then return false end
+
+if PQR_IsMoving(0.1) then return false end
 
 -- Harvest Life replaces Drain Life...
 if IsPlayerSpell(PQ_HL) then PQ_DrainLife = PQ_HL else PQ_DrainLife = 689 end
@@ -1831,23 +1839,6 @@ if not PQR_SpellAvailable(PQ_UW) then return false end
 
 if UnitIsCharmed(&amp;quot;player&amp;quot;) or UnitIsPossessed(&amp;quot;player&amp;quot;) and Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;gt;= 50 then
 	CastSpellByName(GetSpellInfo(PQ_UW),&amp;quot;player&amp;quot;) return true
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Burning Rush</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local Hysteria_UnitInfo = Hysteria_UnitInfo
-local PQ_BR = PQ_BR
-
-if not IsPlayerSpell(PQ_BR) then return false end
-if not PQI_MentallyDefensiveSettings_BurningRush_enable then return false end
-
-if UnitBuffID(&amp;quot;player&amp;quot;,PQ_BR) then
-	if Hysteria_UnitInfo(&amp;quot;player&amp;quot;) &amp;lt; 40 or not PQR_IsMoving(0.3) or not UnitDebuffID(&amp;quot;player&amp;quot;,119050) then
-		CancelUnitBuff(&amp;quot;player&amp;quot;,GetSpellInfo(PQ_BR)) return true
-	end
-end
-
-if Hysteria_UnitInfo(&amp;quot;player&amp;quot;) and PQR_IsMoving(0.1) and not UnitBuffID(&amp;quot;player&amp;quot;,PQ_BR) and UnitDebuffID(&amp;quot;player&amp;quot;,119050) then
-	RunMacroText(&amp;quot;/stopcasting&amp;quot;)
-	SpellCancelQueuedSpell()
-	CastSpellByName(GetSpellInfo(PQ_BR),&amp;quot;player&amp;quot;)
-	return true
 end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Fear (Mouseover)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>-- Disable ability if we disabled it in PQI
 if not PQI_MentallyDefensiveSettings_MouseoverFear_enable then return false end
 if not PQI:IsHotkeys(PQI_MentallyDefensiveSettings_MouseoverFear_key) then return false end
@@ -1860,6 +1851,7 @@ if not PQI:IsHotkeys(PQI_MentallyDefensiveSettings_DemonicTeleport_key) then ret
 
 -- Demonic Teleport
 if not UnitBuffID(&amp;quot;player&amp;quot;,48018) then
+	if PQR_IsMoving(0.1) then return false end
 	CastSpellByName(GetSpellInfo(48018),&amp;quot;player&amp;quot;) return true
 else
 	CastSpellByName(GetSpellInfo(48020),&amp;quot;player&amp;quot;) return true
@@ -1907,13 +1899,10 @@ then
 end
 -- Cleave Toggle --</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Misc] Create Healthstone</Name><Default>false</Default><SpellID>6201</SpellID><Actions></Actions><Lua>local getHealthstoneCharges = GetItemCount(5512, nil, true)
 
+if PQR_IsMoving(0.1) then return false end
+
 -- Don&amp;apos;t spam the Ability
 if UnitCastingInfo(&amp;quot;player&amp;quot;) or UnitChannelInfo(&amp;quot;player&amp;quot;) then return false end
-
--- Can&amp;apos;t run and cast
-if not KJcunning then
-	if PQR_IsMoving(0.3) then return false end
-end
 
 -- Create some healthstones!
 if not UnitAffectingCombat(&amp;quot;player&amp;quot;) and getHealthstoneCharges &amp;lt; 3 then
@@ -1973,6 +1962,9 @@ local PQ_DBD = PQ_DBD
 local Hysteria_UnitInfo = Hysteria_UnitInfo
 local DBDamage = select(15,UnitDebuffID(&amp;quot;player&amp;quot;,PQ_DBD))
 local v=PQI_MentallyDefensiveSettings_UnendingResolve_value or 35
+
+-- Glyph of Unending Resolve check. Passive +10%
+if IsPlayerSpell(148683) then return false end
 
 -- If we&amp;apos;re on a cooldown, it&amp;apos;s also hard to execute....
 if not PQR_SpellAvailable(PQ_UR) then return false end
@@ -2043,4 +2035,25 @@ else
 		end
 		PQ_QueuedSpell = nil
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>[Support] Howl of Terror</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_HOT = PQ_HOT
+local Hysteria_UnitInfo = Hysteria_UnitInfo
+
+-- Disabled in PQI
+if not PQI_MentallyDefensiveSettings_HowlofTerror_enable then return false end
+
+-- Howl of Terror
+if IsPlayerSpell(PQ_HOT)
+	and PQR_SpellAvailable(PQ_HOT)
+	and not GetCurrentKeyBoardFocus()
+	and PQI:IsHotkeys(PQI_MentallyDefensiveSettings_HowlofTerror_key)
+then CastSpellByName(GetSpellInfo(PQ_HOT),nil) return true end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>False</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Fel Flame (Mouseover)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_FelFlame = PQ_FelFlame
+local TargetValidation = TargetValidation
+
+if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
+if not PQR_SpellAvailable(PQ_FelFlame) then return false end
+
+if TargetValidation(&amp;quot;mouseover&amp;quot;,PQ_FelFlame) then
+	if UnitCreatureType(&amp;quot;mouseover&amp;quot;) == &amp;quot;Totem&amp;quot; then
+		CastSpellByName(GetSpellInfo(PQ_FelFlame),&amp;quot;mouseover&amp;quot;) return true
+	end
+end</Lua><RecastDelay>0</RecastDelay><Target>Mouseover</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>

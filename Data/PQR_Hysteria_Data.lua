@@ -15,7 +15,8 @@ if not dotTracker then dotTracker = {} end
 -- General Settings
 if not stopRotation then stopRotation = false end
 if not SCD then SCD = false end
-Trinket = 0
+intBuffs = 0
+hasteBuffs = 0
 
 -- Aura Info function.
 buffs = {
@@ -30,11 +31,11 @@ buffs = {
 }
 
 -- Trinket Proc list
-buffList = {104423, 104509, 104510, 128985, 33702, 126577, 126659, 126478, 125487, 136082, 126605, 126734, 126476, 136089, 138898, 139133, 138786, 138703, 137590, 26297, 32182, 90355, 80353, 2825, 104993, 105702}
+buffList = {104509, 104510, 128985, 33702, 126577, 126478, 125487, 136082, 126605, 126734, 126476, 138898, 139133, 138786, 138703, 104993, 105702}
 critProcs = {104509, 126605, 126476}
 hasteProcs = {104423, 126659, 136089, 138703, 137590, 26297, 32182, 90355, 80353, 2825}
 masteryProcs = {104510}
-intellectProcs = {128985, 126577, 126478, 136082, 138898, 139133, 138786, 104993, 105702, 33702, 126734, 125487}
+intellectProcs = {128985, 126577, 126478, 136082, 138898, 139133, 138786, 105702, 33702}
 
 -- Doom no-dot List
 disableDoomList = {69556,69553,69548,69492,69491,69480,69153,60885,68192,69050,70579,69069,69172,69184,69168,69013,69133,69462,63873,69232}
@@ -579,6 +580,14 @@ function HysteriaFrame_OnEvent(self,event,...)
 				
 				-- Evocation somehow interrupted, or something, continue with the profile.
 				if spellID == PQ_Evo then invokeTimer = GetTime() end
+				
+				-- Trinket procs and other buffs
+				for i=1,#hasteProcs do
+					if UnitBuffID("player",hasteProcs[i]) then hasteBuffs = hasteBuffs - 1 end
+				end
+				for i=1,#intellectProcs do
+					if UnitBuffID("player",intellectProcs[i]) then intBuffs = intBuffs - 1 end
+				end
 			end
 		end
 		
@@ -623,6 +632,18 @@ function HysteriaFrame_OnEvent(self,event,...)
 				
 				-- Invoker's Energy applied
 				if spellID == PQ_InvoBuff then invokeTimer = false stopRotation = false end
+				
+				-- Trinket procs and other buffs
+				for i=1,#hasteProcs do
+					if UnitBuffID("player",hasteProcs[i]) then hasteBuffs = hasteBuffs + 1 end
+				end
+				for i=1,#intellectProcs do
+					if UnitBuffID("player",intellectProcs[i]) then
+						if UnitBuffID("player",138786) and select(4,UnitBuffID("player",138786)) >= 6 then
+							intBuffs = intBuffs + 1
+						else intBuffs = intBuffs + 1 end
+					end
+				end
 			end
 		end
 		
@@ -1010,6 +1031,15 @@ if select(2, UnitClass("player")) == "MAGE" then
 						step	= 5,
 					},
 				},
+				{ 	name	= "Cold Snap",
+					tooltip = "When enabled; Allows you to control automatic usage of Cold Snap at set health %.",
+					enable	= true,
+					widget	= {	type = "numBox",
+						tooltip = "Set the health % value you want Cold Snap to be used at.",
+						value	= 30,
+						step	= 5,
+					},
+				},
 				{ 	name	= "Auto Ice Barrier",
 					tooltip = "When enabled; Will automatically use Ice Barrier on cooldown on you when talented.",
 					enable	= true,
@@ -1118,6 +1148,10 @@ if select(2, UnitClass("player")) == "MAGE" then
 					tooltip = "Toggle the automatic usage of Mirror Image.",
 					enable	= true,
 				},
+				{ 	name	= "Auto Frozen Orb",
+					tooltip = "Toggle the automatic usage of Frozen Orb.",
+					enable	= true,
+				},
 				{ 	name	= "Auto Ice Floes",
 					tooltip = "Toggle the automatic usage of Ice Floes during movement.",
 					enable	= true,
@@ -1170,6 +1204,11 @@ if select(2, UnitClass("player")) == "MAGE" then
 					tooltip = "Select the keybind to use your Pet's Freeze ability with. (Mouseover location)",
 					enable	= true,
 					hotkeys	= {'ls'},
+				},
+				{	name	= "Frozen Orb",
+					tooltip = "Select the keybinding you wish to cast Frozen Orb with! This does not override the automatic casting!",
+					enable	= false,
+					hotkeys	= {},
 				},
 			},
 		}
@@ -1514,10 +1553,6 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 					width	= 100,
 				},
 			},
-			{ 	name	= "Burning Rush",
-				tooltip = "When enabled; Allows the profile to automatically use Burning Rush to increase your run-speed while you're moving!",
-				enable	= false,
-			},
 			{ 	name	= "Soulshatter",
 				tooltip = "When enabled; Allows the profile to automatically dump threat when you've pulled aggro.",
 				enable	= false,
@@ -1629,15 +1664,15 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 				enable	= false,
 				hotkeys	= {},
 			},
-			{	name	= "Level 90 Talent",
-				enable	= false,
-				hotkeys	= {},
-			},
 			{	name	= "Mouseover Fear",
 				enable	= false,
 				hotkeys	= {},
 			},
 			{	name	= "Demonic Teleport",
+				enable	= false,
+				hotkeys	= {},
+			},
+			{	name	= "Howl of Terror",
 				enable	= false,
 				hotkeys	= {},
 			},
@@ -1684,6 +1719,10 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			},
 			{ 	name	= "Auto Doomguard",
 				tooltip = "Toggle the profile to automatically use Doomguard/Terrorguard at the best possible time.",
+				enable	= true,
+			},
+			{ 	name	= "Auto Mannoroths Fury",
+				tooltip = "Toggle the profile to automatically use Mannoroth's Fury at the best possible time.",
 				enable	= true,
 			},
 			{ 	name	= "Frag Belt",
@@ -1876,6 +1915,7 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 	PQ_SL			= 108370	-- Soul Leech
 	PQ_HL			= 108371	-- Harvest Life
 	PQ_HOT			= 5484		-- Howl of Terror
+	PQ_DBreath		= 47897		-- Demonic Breath
 	PQ_MC			= 6789		-- Mortal Coil
 	PQ_SF			= 30283		-- Shadowfury
 	PQ_Soul			= 108415	-- Soul Link
