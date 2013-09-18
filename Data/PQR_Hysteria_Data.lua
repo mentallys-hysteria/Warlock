@@ -727,7 +727,7 @@ function isMindControledUnit(unit)
 		local npcID = tonumber(UnitGUID("target"):sub(6,10), 16)
 	end
 	if UnitExists("mouseover") then
-		local npcID = tonumber(UnitGUID("target"):sub(6,10), 16)
+		local npcID = tonumber(UnitGUID("mouseover"):sub(6,10), 16)
 	end
 	
 	-- Minion of Y'Shaarj needs to burn
@@ -866,6 +866,9 @@ function PQ_PowerRound(num) return math.floor(num+.5) end
 -- Smart channel cancel Function
 smartCancel = nil
 function smartCancel()
+	-- Only enable for Priests
+	if select(2, UnitClass("player")) ~= "PRIEST" then return true end
+	
 	-- Don't cancel Mind Sear
 	if UnitChannelInfo("player") == GetSpellInfo(PQ_MSear) then return false end
 	
@@ -890,10 +893,14 @@ function smartCancel()
 	
 	-- Mind Flay Insanity failsafe.
 	if PQI_MentallyOffensiveSettings_MindFlayInsanity_enable then
-		if PQI_MentallyOffensiveSettings_MindFlayInsanity_value > 2 then
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
+		if UnitSpellHaste("player")*425 > 15800 then
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) then return false end
 		else
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyOffensiveSettings_MindFlayInsanity_value then return false end
+			if PQI_MentallyOffensiveSettings_MindFlayInsanity_value > 2 then
+				if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
+			else
+				if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyOffensiveSettings_MindFlayInsanity_value then return false end
+			end
 		end
 	end
 	
@@ -974,15 +981,17 @@ function TargetValidation(unit, spell)
 		and UnitCanAttack("player", unit) == 1
 		and not UnitIsDeadOrGhost(unit)
 		and not PQR_IsOutOfSight(unit, 1) then
+			if not smartCancel() then return false end
+			
 			if IsSpellKnown(spell) then
 				if PQR_SpellAvailable(spell) then
 					if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
 				else
-					if spell == 8092 or spell == 32379 then
-						local spellCD = select(2,GetSpellCooldown(spell)) + GetSpellCooldown(spell) - GetTime()
-						if spellCD <= 0 then spellCD = 0 end
-						if spellCD <= 0.5 then return true end
-					end
+					--if spell == 8092 or spell == 32379 then
+					--	local spellCD = select(2,GetSpellCooldown(spell)) + GetSpellCooldown(spell) - GetTime()
+					--	if spellCD <= 0 then spellCD = 0 end
+					--	if spellCD <= 0.5 then return true end
+					--end
 					return false
 				end
 			else
