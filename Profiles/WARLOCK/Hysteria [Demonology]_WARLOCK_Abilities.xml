@@ -1195,13 +1195,13 @@ else
 		end
 		
 		-- Enter Metamorphosis to rebuild Corruption
-		if Cor and CorTimer - GetTime() &amp;lt; 5 then
+		if Cor and CorTimer - GetTime() &amp;lt; 5 and isMindControledUnit(&amp;quot;target&amp;quot;) then
 			SpellCancelQueuedSpell()
 			CastShapeshiftForm(1) return true
 		end
 		
 		-- Enter Metamorphosis to cast or refresh Doom
-		if UnitExists(&amp;quot;target&amp;quot;) then
+		if UnitExists(&amp;quot;target&amp;quot;) and not disableDoom(&amp;quot;target&amp;quot;) then
 			local id = UnitGUID(&amp;quot;target&amp;quot;)
 			if Doom then
 				for i=1,#dotTracker do
@@ -1283,9 +1283,6 @@ if UVLS then
 	end
 end
 
--- Don&amp;apos;t drop out on Intellect buffs
-if intBuffs &amp;gt; 0 then return false end
-
 -- Forcing Metamorphosis, don&amp;apos;t cancel just yet.
 if forceMeta then return false end
 
@@ -1302,7 +1299,7 @@ else
 	end
 	
 	-- Doom
-	if UnitExists(&amp;quot;target&amp;quot;) then
+	if UnitExists(&amp;quot;target&amp;quot;) and not disableDoom(&amp;quot;target&amp;quot;) then
 		local id = UnitGUID(&amp;quot;target&amp;quot;)
 		if #dotTracker &amp;gt; 0 then
 			for i=1,#dotTracker do
@@ -1314,7 +1311,7 @@ else
 	end
 	
 	-- Corruption
-	if Cor and CorTimer - GetTime() &amp;lt; 18*1.3*EA then return false end
+	if Cor and CorTimer - GetTime() &amp;lt; 18*1.3 and isMindControledUnit(&amp;quot;target&amp;quot;) then return false end
 	
 	-- Cleave Mode
 	if isCleave or OmniCleave then
@@ -1322,11 +1319,15 @@ else
 		for i=1,#cleaveTargets do
 			local cleaveCor,_,_,_,_,_,cleaveCorTimer = UnitDebuffID(cleaveTargets[i],PQ_Cor,&amp;quot;PLAYER&amp;quot;)
 			
-			if cleaveCor and cleaveCorTimer - GetTime() &amp;lt; 25 then return false end
+			if cleaveCor and cleaveCorTimer - GetTime() &amp;lt; 25 and isMindControledUnit(cleaveTargets[i]) then return false end
 		end
 	end
 	
+	-- Haste procs are VERY valuable
 	if hasteBuffs &amp;gt; 0 and not UnitBuffID(&amp;quot;player&amp;quot;,PQ_MCore) then CancelShapeshiftForm() return true end
+	
+	-- Don&amp;apos;t drop out on Intellect buffs
+	if intBuffs &amp;gt; 0 and fury &amp;gt; 350 then return false end
 	
 	-- Heroism
 	if PQ_HasHero() and fury &amp;lt; 100 then CancelShapeshiftForm() return true end
@@ -2056,4 +2057,18 @@ if TargetValidation(&amp;quot;mouseover&amp;quot;,PQ_FelFlame) then
 	if UnitCreatureType(&amp;quot;mouseover&amp;quot;) == &amp;quot;Totem&amp;quot; then
 		CastSpellByName(GetSpellInfo(PQ_FelFlame),&amp;quot;mouseover&amp;quot;) return true
 	end
-end</Lua><RecastDelay>0</RecastDelay><Target>Mouseover</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>
+end</Lua><RecastDelay>0</RecastDelay><Target>Mouseover</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability><Ability><Name>Hand of Gul&amp;apos;dan (UVLS)</Name><Default>false</Default><SpellID>0</SpellID><Actions></Actions><Lua>local PQ_GulDan = PQ_GulDan
+local PQ_SFlame = PQ_SFlame
+local Shadowflame = select(7,UnitDebuffID(&amp;quot;target&amp;quot;,PQ_SFlame,&amp;quot;PLAYER&amp;quot;))
+
+-- No Chaos Waves please!
+if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
+	
+if TargetValidation(&amp;quot;target&amp;quot;,PQ_GulDan) and PQR_SpellAvailable(PQ_GulDan)
+	and GetSpellCharges(PQ_GulDan) &amp;gt; 0 and Shadowflame then
+		if UnitBuffID(&amp;quot;player&amp;quot;,138963) then
+			SpellCancelQueuedSpell()
+			CastSpellByName(GetSpellInfo(PQ_GulDan),&amp;quot;target&amp;quot;)
+			return true
+		end
+end</Lua><RecastDelay>0</RecastDelay><Target>Target</Target><CancelChannel>True</CancelChannel><SkipUnknown>True</SkipUnknown></Ability></WARLOCK>
