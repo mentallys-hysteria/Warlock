@@ -2,11 +2,11 @@
 -- Functions & Variables
 ------------------------
 Version = 3
-Minor = 0
+Minor = 7
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 09/07/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 09/25/2013|cffffffff")
 end
 
 -- Initialize Dot Tracker
@@ -74,8 +74,8 @@ function mentallyPower(spellID)
 			-- Shadow Word: Pain
 			if spellID == 589 then
 				ticks		= PQ_PowerRound(18/tick_every)
-				duration	= ticks * tick_every
-				damage		= ticks * (623+spd*0.293) * damage_bonus
+				duration	= ticks*tick_every
+				damage		= ticks*(623+spd*0.293)*damage_bonus*dmg_buff
 				dps			= PQ_PowerRound(damage/duration)
 				dot_power	= PQ_PowerRound(dps/100)/10
 				return dot_power
@@ -84,8 +84,8 @@ function mentallyPower(spellID)
 			-- Vampiric Touch
 			if spellID == 34914 then
 				ticks		= PQ_PowerRound(15/tick_every)
-				duration	= ticks * tick_every
-				damage		= ticks*(62+spd*0.346)*damage_bonus
+				duration	= ticks*tick_every
+				damage		= ticks*(62+spd*0.346)*damage_bonus*dmg_buff
 				dps			= PQ_PowerRound(damage/duration)
 				dot_power	= PQ_PowerRound(dps/100)/10
 				return dot_power
@@ -95,8 +95,8 @@ function mentallyPower(spellID)
 			if spellID == 2944 then
 				tick_every	= 1/(1+(haste/100))
 				ticks		= PQ_PowerRound(5/tick_every)
-				duration	= ticks * tick_every
-				damage		= ticks*(9+spd*0.131)*sorbs*damage_bonus
+				duration	= ticks*tick_every
+				damage		= ticks*(9+spd*0.131)*sorbs*damage_bonus*dmg_buff
 				dps			= PQ_PowerRound(damage/duration)
 				dot_power	= PQ_PowerRound(dps/100)/10
 				return dot_power
@@ -893,14 +893,10 @@ function smartCancel()
 	
 	-- Mind Flay Insanity failsafe.
 	if PQI_MentallyOffensiveSettings_MindFlayInsanity_enable then
-		if UnitSpellHaste("player")*425 > 15800 then
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) then return false end
+		if PQI_MentallyOffensiveSettings_MindFlayInsanity_value > 2 then
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
 		else
-			if PQI_MentallyOffensiveSettings_MindFlayInsanity_value > 2 then
-				if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
-			else
-				if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyOffensiveSettings_MindFlayInsanity_value then return false end
-			end
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyOffensiveSettings_MindFlayInsanity_value then return false end
 		end
 	end
 	
@@ -981,17 +977,31 @@ function TargetValidation(unit, spell)
 		and UnitCanAttack("player", unit) == 1
 		and not UnitIsDeadOrGhost(unit)
 		and not PQR_IsOutOfSight(unit, 1) then
-			if not smartCancel() then return false end
+			-- Priest specific override
+			if select(2, UnitClass("player")) == "PRIEST" then
+				local isCleave = isCleave or nil
+				if not isCleave then
+					if spell ~= PQ_MB then if not smartCancel() then return false end end
+				else
+					if spell == PQ_MB or spell == PQ_VT or spell == PQ_SWP then
+						if PQR_SpellAvailable(spell) then
+							if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
+						end
+					else
+						if not smartCancel() then return false end
+					end
+				end
+			end
 			
 			if IsSpellKnown(spell) then
 				if PQR_SpellAvailable(spell) then
 					if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
 				else
-					--if spell == 8092 or spell == 32379 then
-					--	local spellCD = select(2,GetSpellCooldown(spell)) + GetSpellCooldown(spell) - GetTime()
-					--	if spellCD <= 0 then spellCD = 0 end
-					--	if spellCD <= 0.5 then return true end
-					--end
+					if spell == 8092 then
+						local spellCD = select(2,GetSpellCooldown(spell)) + GetSpellCooldown(spell) - GetTime()
+						if spellCD <= 0 then spellCD = 0 end
+						if spellCD <= 0.5 then return true end
+					end
 					return false
 				end
 			else
@@ -1172,10 +1182,6 @@ if select(2, UnitClass("player")) == "MAGE" then
 					tooltip = "Toggle the automatic usage of Ice Floes during movement.",
 					enable	= true,
 				},
-				{ 	name	= "Frag Belt",
-					tooltip = "Toggle the use of automatic Frag Belt.",
-					enable	= true,
-				},
 				{ 	name	= "Boss Cooldown",
 					tooltip = "Toggle the use of cooldowns on boss targets only.",
 					enable	= true,
@@ -1302,7 +1308,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	maxInsanityTicks = 3
 	
 	-- PQInterface Settings
-	local Defensive = {
+	local ShadowDefensive = {
 		name	= "Defensive Settings",
 		author	= "Mentally",
 		abilities = {
@@ -1363,7 +1369,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 		},
 	}
 	
-	local Offensive = {
+	local ShadowOffensive = {
 		name	= "Offensive Settings",
 		author	= "Mentally",
 		abilities = {
@@ -1392,10 +1398,6 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 			},
 			{ 	name	= "Auto Racials",
 			    tooltip = "Toggle the automatic usage of Racials.",
-				enable	= true,
-			},
-			{ 	name	= "Auto Frag Belt",
-			    tooltip = "Toggle the automatic usage of Frag Belt.",
 				enable	= true,
 			},
 			{ 	name	= "Auto Shadowfiend",
@@ -1472,8 +1474,8 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 			},
 		},
 	}
-	HYSTERIA_SHADOW_DEF = PQI:AddRotation(Defensive)
-	HYSTERIA_SHADOW_OFF = PQI:AddRotation(Offensive)
+	HYSTERIA_SHADOW_DEF = PQI:AddRotation(ShadowDefensive)
+	HYSTERIA_SHADOW_OFF = PQI:AddRotation(ShadowOffensive)
 	
 	-- Skill IDs
 	PQ_DP		= 2944			-- Devouring Plague
@@ -1736,10 +1738,6 @@ elseif select(2,UnitClass("player")) == "WARLOCK" then
 			},
 			{ 	name	= "Auto Mannoroths Fury",
 				tooltip = "Toggle the profile to automatically use Mannoroth's Fury at the best possible time.",
-				enable	= true,
-			},
-			{ 	name	= "Frag Belt",
-			    tooltip = "Toggle the automatic usage of Frag Belt during Metamorphosis (Mouseover).",
 				enable	= true,
 			},
 			{ 	name	= "Boss Cooldown",
