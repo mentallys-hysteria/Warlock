@@ -2,7 +2,7 @@
 -- Functions & Variables
 ------------------------
 Version = 3
-Minor = 7
+Minor = 8
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
@@ -981,15 +981,9 @@ function TargetValidation(unit, spell)
 			if select(2, UnitClass("player")) == "PRIEST" then
 				local isCleave = isCleave or nil
 				if not isCleave then
-					if spell ~= PQ_MB then if not smartCancel() then return false end end
+					if spell ~= PQ_MB and spell ~= PQ_MS then if not smartCancel() then return false end end
 				else
-					if spell == PQ_MB or spell == PQ_VT or spell == PQ_SWP then
-						if PQR_SpellAvailable(spell) then
-							if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
-						end
-					else
-						if not smartCancel() then return false end
-					end
+					if spell ~= PQ_MB and spell ~= PQ_VT and spell ~= PQ_SWP then if not smartCancel() then return false end end
 				end
 			end
 			
