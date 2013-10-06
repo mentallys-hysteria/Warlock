@@ -337,6 +337,19 @@ function spellCooldown(spell)
 	if spellCD > 0 then return spellCD else return 0 end
 end
 
+-- Pause Profile Function
+function pauseProfile()
+	if UnitIsDeadOrGhost("player")		-- Snap! Deaded
+		or UnitBuffID("player",104934)	-- Eating (Feast/Banquet)
+		or UnitBuffID("player",80169)	-- Eating Normal
+		or UnitBuffID("player",87959)	-- Drinking Normal
+		or UnitBuffID("player",11392)	-- 18 sec Invis Pot (for CMs)
+		or UnitBuffID("player",3680)	-- 15 sec Invis pot  (for CMs)
+		or IsMounted()					-- Mounted, lol. Get it?
+	then return true end
+	return false
+end
+
 -- Warlock Tier set table
 warlockT15 = {
 	96725,96726,96727,96728,96729,	-- Tier 15: Heroic
@@ -731,7 +744,7 @@ function isMindControledUnit(unit)
 	end
 	
 	-- Minion of Y'Shaarj needs to burn
-	if npcID == 72272 then return false end
+	if npcID == 72272 or npcID == 71070 or npcID == 71075 then return false end
 		
 	-- Stop dots on MCed raid members
 	for i=1,GetNumGroupMembers() do
@@ -866,6 +879,11 @@ function PQ_PowerRound(num) return math.floor(num+.5) end
 -- Smart channel cancel Function
 smartCancel = nil
 function smartCancel()
+	local mfEnable	= PQI_MentallyShadowOffensive_MindFlay_enable
+	local mfValue	= PQI_MentallyShadowOffensive_MindFlay_value
+	local mfiEnable	= PQI_MentallyShadowOffensive_MindFlayInsanity_enable
+	local mfiValue	= PQI_MentallyShadowOffensive_MindFlayInsanity_value
+	
 	-- Only enable for Priests
 	if select(2, UnitClass("player")) ~= "PRIEST" then return true end
 	
@@ -873,33 +891,32 @@ function smartCancel()
 	if UnitChannelInfo("player") == GetSpellInfo(PQ_MSear) then return false end
 	
 	-- Not smart cancelling Mind Flay, default.
-	if not PQI_MentallyOffensiveSettings_MindFlay_enable then
+	if not mfEnable then
 		if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) then return false end
 	end
 	
 	-- Not smart cancelling Mind Flay (Insanity), default.
-	if not PQI_MentallyOffensiveSettings_MindFlayInsanity_enable then
+	if not mfiEnable then
 		if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) then return false end
 	end
 	
 	-- Mind Flay failsafe.
-	if PQI_MentallyOffensiveSettings_MindFlay_enable then
-		if PQI_MentallyOffensiveSettings_MindFlay_value > 2 then
+	if mfEnable then
+		if mfValue > 2 then
 			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < maxFlayTicks - 1 then return false end
 		else
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < PQI_MentallyOffensiveSettings_MindFlay_value then return false end
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MF) and flayTicks < mfValue then return false end
 		end
 	end
 	
 	-- Mind Flay Insanity failsafe.
-	if PQI_MentallyOffensiveSettings_MindFlayInsanity_enable then
-		if PQI_MentallyOffensiveSettings_MindFlayInsanity_value > 2 then
+	if mfiEnable then
+		if mfiValue > 2 then
 			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < maxInsanityTicks - 1 then return false end
 		else
-			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < PQI_MentallyOffensiveSettings_MindFlayInsanity_value then return false end
+			if UnitChannelInfo("player") == GetSpellInfo(PQ_MFI) and insanityTicks < mfiValue then return false end
 		end
 	end
-	
 	return true
 end
 
@@ -1303,7 +1320,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	
 	-- PQInterface Settings
 	local ShadowDefensive = {
-		name	= "Defensive Settings",
+		name	= "Shadow Defensive",
 		author	= "Mentally",
 		abilities = {
 			{ 	name	= "Healthstone",
@@ -1364,7 +1381,7 @@ elseif select(2, UnitClass("player")) == "PRIEST" then
 	}
 	
 	local ShadowOffensive = {
-		name	= "Offensive Settings",
+		name	= "Shadow Offensive",
 		author	= "Mentally",
 		abilities = {
 			{ 	name	= "Combat Detection",
