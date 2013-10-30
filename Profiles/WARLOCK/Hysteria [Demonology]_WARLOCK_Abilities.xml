@@ -659,14 +659,14 @@ local PQ_SoulFire = PQ_SoulFire
 local spellCooldown = spellCooldown
 local TargetValidation = TargetValidation
 
+-- Can&amp;apos;t run and cast
+if PQR_IsMoving(0.1) then return false end
+
 -- Omni Mode AOE Check
 if isOmni and OmniAoE then return false end
 
 -- Don&amp;apos;t cast while in Metamorphosis
 if GetShapeshiftForm(&amp;quot;player&amp;quot;) == 1 then return false end
-
--- Can&amp;apos;t run and cast
-if PQR_IsMoving(0.1) then return false end
 
 -- Soul Fire is on CD
 if not PQR_SpellAvailable(PQ_SoulFire) then return false end

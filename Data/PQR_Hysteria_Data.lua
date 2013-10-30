@@ -18,6 +18,21 @@ if not SCD then SCD = false end
 if not intBuffs then intBuffs = 0 end
 if not hasteBuffs then hasteBuffs = 0 end
 
+---------------------------------
+PQR_UnitDistance = nil
+function PQR_UnitDistance(var1, var2)
+        if UnitExists(var1) and not UnitIsDead(var1) then
+                local x1 , y1 = select(1,PQR_UnitInfo(var1)), select(2,PQR_UnitInfo(var1))
+                local x2 , y2 = select(1,PQR_UnitInfo(var2)), select(2,PQR_UnitInfo(var2))
+                local w = 5000
+                local h = 5000
+                local distance = sqrt(min(x1 - x2, w - (x1 - x2))^2 + min(y1 - y2, h - (y1-y2))^2)
+                
+                return distance
+        end
+end
+---------------------------------
+
 -- Aura Info function.
 buffs = {
 	stat 		=	{ 90363, 20217,	115921, 1126 },
@@ -48,7 +63,7 @@ function mentallyPower(spellID)
 	
 	-- Calculate potential damage buffs.
 	dmg_buff = 1
-	local fluidity, tricks, fearless, nutriment, shadowform, pi, tof = UnitBuffID("player",138002), UnitBuffID("player",57934), UnitBuffID("player",118977), select(4,UnitBuffID("player",138002)), UnitBuffID("player",15473), UnitBuffID("player",10060), UnitBuffID("player",123254)
+	local fluidity, tricks, fearless, nutriment, shadowform, pi, tof, skullbanner = UnitBuffID("player",138002), UnitBuffID("player",57934), UnitBuffID("player",118977), UnitBuffID("player",140741), UnitBuffID("player",15473), UnitBuffID("player",10060), UnitBuffID("player",123254), UnitBuffID("player",114207)
 	if fluidity		then dmg_buff = dmg_buff * 1.4		end
 	if fearless		then dmg_buff = dmg_buff * 1.6		end
 	if tricks		then dmg_buff = dmg_buff * 1.15		end
@@ -57,13 +72,13 @@ function mentallyPower(spellID)
 	if pi			then dmg_buff = dmg_buff * 1.05		end
 	if tof			then dmg_buff = dmg_buff * 1.15		end
 	
+	-- If Unerring proceed, take it into account.
+	if crit > 100 then crit = 100 end
+	
 	-- Skull Banner
 	if crit >= 100	then
 		if skullbanner then dmg_buff = dmg_buff * 1.20	end
 	end
-	
-	-- If Unerring proceed, take it into account.
-	if crit > 100 then crit = 100 end
 	
 	-- Class/spec detection
 	if select(2,UnitClass("player")) == "PRIEST" then
@@ -285,7 +300,7 @@ PQ_BossUnits = {
 
 	-- Training Dummies --
 	46647,		-- Level 85 Training Dummy
-	67127,		-- Level 90 Training Dummy
+	--67127,		-- Level 90 Training Dummy
 	
 	-- Pandaria Raid Adds --
 	63346,		-- Tsulong: The Dark of Night
@@ -301,40 +316,23 @@ PQ_Shrapnel			= {106794,106791}
 PQ_FadingLight		= {105925,105926,109075,109200}
 PQ_HourOfTwilight	= {106371,103327,106389,106174,106370}
 
--- Temporary Buffs/Procs
-PQ_Lightweave		= 125487
-PQ_PowerTorrent		= 74241
-PQ_VolcanicPotion	= 79476
-PQ_SynapseSprings	= 96230
-PQ_SynapseSprings2	= 126734
-PQ_JadeSerpent		= 105702
-PQ_JadeSpirit		= 104993
+-- Heroism Effects
 PQ_BloodLust		= 2825
 PQ_Heroism			= 32182
 PQ_TimeWarp			= 80353
 PQ_Hysteria			= 90355
 PQ_Zerk				= 26297
 
--- Temporary Buff Table
-PQ_TemporaryBuffs = {
-	{spellID = PQ_JadeSpirit, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_Lightweave, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_JadeSerpent, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_PowerTorrent, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_VolcanicPotion, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_SynapseSprings, check = true, hasBuff = false, endTime = nil},
-	{spellID = PQ_SynapseSprings2, check = true, hasBuff = false, endTime = nil},
-	{spellID = 126577, check = true, hasBuff = false, endTime = nil},
-	{spellID = 138703, check = true, hasBuff = false, endTime = nil},
-	{spellID = 137590, check = true, hasBuff = false, endTime = nil},
-	{spellID = 138963, check = true, hasBuff = false, endTime = nil}
-}
-
 -- Spell Cooldown Function
 spellCooldown = nil
 function spellCooldown(spell)
-	local spellCD = GetSpellCooldown(spell) + select(2,GetSpellCooldown(spell)) - GetTime()
-	if spellCD > 0 then return spellCD else return 0 end
+	if tonumber(spell) ~= nil then
+		local spellCDstart, spellCDduration, _ = GetSpellCooldown(spell)
+		if spellCDduration == 0 then return 0 else
+			local spellCD = spellCDstart + spellCDduration - GetTime()
+			return spellCD
+		end
+	end
 end
 
 -- Pause Profile Function
@@ -364,18 +362,13 @@ function disableDoom(unit)
 	local npcID = false
 	
 	-- Grab NPC ID
-	if UnitExists("target") then
-		local npcID = tonumber(UnitGUID("target"):sub(6,10), 16)
-	end
-	if UnitExists("mouseover") then
-		local npcID = tonumber(UnitGUID("mouseover"):sub(6,10), 16)
+	if UnitExists(unit) then
+		local npcID = tonumber(UnitGUID(unit):sub(6,10), 16)
 	end
 	
 	-- Loop Units.
 	if npcID then
-		for i=1,#disableDoom do
-			if disableDoom[i] == npcID then return true end
-		end
+		for i=1,#disableDoom do if disableDoom[i] == npcID then return true end end
 		return false
 	else return false end
 end
@@ -419,6 +412,12 @@ end
 
 -- Combat log event reader
 function HysteriaFrame_OnEvent(self,event,...)
+	if event == "ACTIVE_TALENT_GROUP_CHANGED" then
+		print("THIS NEEDS TO WORK!!!!!!!")
+	elseif event == "PLAYER_TALENT_UPDATE" then
+		print("THIS NEEDS TO WORK!!!!!!! 222")
+	end
+	
 	-- We started a channel, update counters
 	if event == "UNIT_SPELLCAST_CHANNEL_START" then
 		-- Mind Flay counter
@@ -458,6 +457,15 @@ function HysteriaFrame_OnEvent(self,event,...)
 		local doom_tick_every = PQ_Round(15/(1+(UnitSpellHaste("player")/100)),2)
 		local swp_tick_every = PQ_Round(3/(1+(UnitSpellHaste("player")/100)),2)
 		local vt_tick_every = PQ_Round(3/(1+(UnitSpellHaste("player")/100)),2)
+		
+		-- Fire RNG sucks donkey-cock!
+		if not pyroCritTimer then pyroCritTimer = 0 end
+		if not fireballCritTimer then fireballCritTimer = 0 end
+		if not infernoTimer then infernoTimer = 0 end
+		
+		if GetTime() - pyroCritTimer > 5 and pyroCritDamage > 0 then pyroCritDamage = 0 end
+		if GetTime() - infernoTimer > 10 and InfernoDamage > 0 then InfernoDamage = 0 end
+		if GetTime() - fireballCritTimer > 5 and fireballCritDamage > 0 then fireballCritDamage = 0 end
 		
 		-- Unit Death events
 		if subEvent == "UNIT_DIED" then
@@ -646,6 +654,9 @@ function HysteriaFrame_OnEvent(self,event,...)
 				-- Invoker's Energy applied
 				if spellID == PQ_InvoBuff then invokeTimer = false stopRotation = false end
 				
+				-- Alter Time Interface Bug workaround
+				if spellID == PQ_ATB then alteredTime = GetTime() end
+				
 				-- Did we get buffed?!
 				for i=1,#hasteProcs do
 					if spellID == hasteProcs[i] then hasteBuffs = hasteBuffs + 1 end
@@ -662,15 +673,21 @@ function HysteriaFrame_OnEvent(self,event,...)
 				-- Pyroblast
 				if spellID == PQ_Pyro then
 					PyroDamage = damage
-					if critical == 1 then pyroCrit = 1 else pyroCrit = 0 end
+					--if critical == 1 then pyroCritDamage = PyroDamage pyroCritTimer = GetTime() else pyroCritDamage = nil end
+					if critical == 1 then pyroCritDamage = PyroDamage pyroCritTimer = GetTime() end
+					pyroTimer = GetTime()
 				end
 				-- Fireball
 				if spellID == PQ_Fireball then
 					FireballDamage = damage
-					if critical == 1 then fireballCrit = 1 else fireballCrit = 0 end
+					--if critical == 1 then fireballCritDamage = FireballDamage else fireballCritDamage = nil end
+					if critical == 1 then fireballCritDamage = FireballDamage fireballCritTimer = GetTime() end
 				end
 				-- Inferno Blast (Always a critical)
-				if spellID == PQ_IBlast then InfernoDamage = damage end
+				if spellID == PQ_IBlast then
+					InfernoDamage = damage
+					infernoTimer = GetTime()
+				end
 				-- Frostbolt (5.4 Mastery change: Icicles)
 				if spellID == PQ_Frostbolt then PQ_Icicles = PQ_Icicles + 1 end
 				-- Ice Lance (5.4 Mastery change: Icicles)
@@ -832,30 +849,6 @@ function PQ_AuraInfo(i,unit)
 	end
 end
 
--- Check Temporary Buffs Function
-PQ_CheckTempBuffs = nil
-function PQ_CheckTempBuffs(t)
-	for i=1,#t do
-		if t[i].check == true and UnitBuffID("player",t[i].spellID) then
-			t[i].hasBuff = true
-			t[i].endTime = select(7,UnitBuffID("player",t[i].spellID))
-		else
-			t[i].hasBuff = false
-			t[i].endTime = nil
-		end
-	end
-end
-
--- Get Time Left on Buffs Function
-PQ_GetTimeLeft = nil
-function PQ_GetTimeLeft(t, spellID)
-	for i=1,#t do
-		if t[i].spellID == spellID and t[i].hasBuff == true then
-			return t[i].endTime - GetTime()
-		end
-	end
-end
-
 -- Heroism check Function
 PQ_HasHero = nil
 function PQ_HasHero()
@@ -943,6 +936,7 @@ T2D = nil
 function T2D(unit)
 	-- If no target is given, return false.
 	if unit == nil then return false end
+	if not UnitExists("target") then return false end
 	
 	if UnitExists(unit) then
 		-- Target present; Set initial values.
@@ -1000,12 +994,22 @@ function TargetValidation(unit, spell)
 				if not isCleave then
 					if spell ~= PQ_MB and spell ~= PQ_MS then if not smartCancel() then return false end end
 				else
+					if UnitChannelInfo("player") == GetSpellInfo(PQ_MSear) then return false end
 					if spell ~= PQ_MB and spell ~= PQ_VT and spell ~= PQ_SWP then if not smartCancel() then return false end end
 				end
 			end
 			
 			if IsSpellKnown(spell) then
 				if PQR_SpellAvailable(spell) then
+					-- Mage: Mage Bomb override
+					if select(2, UnitClass("player")) == "MAGE" then
+						if spell ~= PQ_NT and spell ~= PQ_LB and spell ~= PQ_FrostBomb then
+							if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
+						else
+							if IsSpellInRange(GetSpellInfo(PQ_FBlast), unit) == 1 then return true else return false end
+						end
+					end
+					
 					if IsSpellInRange(GetSpellInfo(spell), unit) == 1 then return true else return false end
 				else
 					if spell == 8092 then
@@ -1028,15 +1032,212 @@ if select(2, UnitClass("player")) == "MAGE" then
 	PQR_WriteToChat("|cffFFBE69Loading |cff69CCF0Mage|cffFFBE69 Tables ...|cffffffff")
 	
 	-- General Mage Settings
-	LivingBomb = 0
+	PQ_Icicles 			= 0
+	LivingBomb 			= 0
+	PyroDamage			= 0
+	IgniteDamage		= 0
+	FireballDamage		= 0
+	InfernoDamage		= 0
+	fireballCritDamage	= 0
+	pyroCritDamage		= 0
+	alteredTime			= false
 	
-	if GetSpecialization("player") == 1 then
-	elseif GetSpecialization("player") == 2 then
-	else
-		-- Frost Settings
-		PQ_Icicles = 0
-		
-		-- PQInterface Settings
+	if GetSpecialization() == 1 then
+	elseif GetSpecialization() == 2 then
+		-- Fire: PQInterface Settings
+		local Defensive = {
+			name	= "Defensive Settings",
+			author	= "Mentally",
+			abilities = {
+				{ 	name	= "Healthstone",
+					tooltip = "When enabled; Allows you to control automatic usage of healthstone at set health %.",
+					enable	= true,
+					widget	= {	type = "numBox",
+						tooltip = "Set the health % value you want Healthstone to be used at.",
+						value	= 50,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Mana Gem",
+					tooltip = "When enabled; Allows you to control automatic usage of Mana Gem at set mana %.",
+					enable	= true,
+					widget	= {	type = "numBox",
+						tooltip = "Set the mana % value you want Mana Gem to be used at.",
+						value	= 70,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Symbiosis",
+					tooltip = "When enabled; Allows you to control when and how the profile casts Symbiosis on you and your pet.",
+					enable	= true,
+					widget	= { type = "numBox",
+						tooltip = "Set the health % value you want Symbiosis to be cast at.",
+						value	= 25,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Cold Snap",
+					tooltip = "When enabled; Allows you to control automatic usage of Cold Snap at set health %.",
+					enable	= true,
+					widget	= {	type = "numBox",
+						tooltip = "Set the health % value you want Cold Snap to be used at.",
+						value	= 30,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Auto Ice Barrier",
+					tooltip = "When enabled; Will automatically use Ice Barrier on cooldown on you when talented.",
+					enable	= true,
+				},
+				{ 	name	= "Ice Block",
+					tooltip = "When enabled; Will use Ice Block at set health %.",
+					enable	= true,
+					widget	= { type = "numBox",
+						tooltip = "Set the health % value you want Ice Block to be cast at.",
+						value	= 35,
+						step	= 5,
+					},
+				},
+				{ 	name	= "Wipe Cauterize",
+					tooltip = "When enabled; Will cast Ice Block to wipe Cauterize's burn effect.",
+					enable	= true,
+				},
+				{ 	name	= "Raid Buffing",
+					tooltip = "When enabled; Will automatically try to buff your raid or party.",
+					enable	= true,
+				},
+				{ 	name	= "Spell Singer",
+					tooltip = "When enabled; Will automatically try to steal valuable spells from your surrounding targets.",
+					enable	= false,
+				},
+				{ 	name	= "Remove Curse",
+					tooltip = "When enabled; Will automatically remove curses from friendly targets.",
+					enable	= false,
+				},
+				--[[{ 	name	= "Polymorph",
+					tooltip = "When enabled; This setting will allow you to select how you want Polymorph to be used.\n\n When enabled and a mode other than <Keybinding> have been selected, the profile will try and use Polymorph automatically on cooldown.",
+					enable	= false,
+					newSection  = true,
+					widget	= { type = "select",
+						tooltip = "Select how you want Polymorph to behave.",
+						values	= {
+							"Arena",
+							"Focus",
+							"Target",
+							"Mouseover",
+							"Keybinding",
+						},
+						width	= 80,
+					},
+				},]]
+			},
+			hotkeys = {
+				{	name	= "Pause Rotation",
+					enable	= true,
+					hotkeys	= {'lc'},
+				},
+				{	name	= "Level 30 Talent",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Level 45 Talent",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Level 90 Talent",
+					enable	= true,
+					hotkeys	= {'ra'},
+				},
+			},
+		}
+		local Offensive = {
+			name	= "Offensive Settings",
+			author	= "Mentally",
+			abilities = {
+				{ 	name	= "Combat Detection",
+					tooltip = "Toggle the profile to pause automatically when not engaged in combat.",
+					enable	= true,
+				},
+				{ 	name	= "Spell Queue Type",
+					tooltip = "This setting allows you to enable and set how you want Spell Queue overriding to work. It will either queue up the spell on the next GCD when you mouseover or click the ability.",
+					enable	= false,
+					newSection  = true,
+					widget	= { type = "select",
+						tooltip = "Select how you want to queue the next spell.",
+						values	= {
+							"Click",
+							"Mouseover",
+							"Command",
+						},
+						width	= 80,
+					},
+				},
+				{ 	name	= "Auto Potion",
+					tooltip = "Toggle the use of Potion of the Jade Serpent under the effects of Bloodlust/Heroism/Time Warp/Ancient Hysteria.",
+					enable	= true,
+					newSection  = true,
+				},
+				{ 	name	= "Auto Racials",
+					tooltip = "Toggle the automatic usage of Racials.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Alter Time",
+					tooltip = "Toggle the automatic usage of Alter Time.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Invocation",
+					tooltip = "Toggle the automatic usage of Invocation.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Mirror Image",
+					tooltip = "Toggle the automatic usage of Mirror Image.",
+					enable	= true,
+				},
+				{ 	name	= "Auto Ice Floes",
+					tooltip = "Toggle the automatic usage of Ice Floes during movement.",
+					enable	= true,
+				},
+				{ 	name	= "Boss Cooldown",
+					tooltip = "Toggle the use of cooldowns on boss targets only.",
+					enable	= true,
+					newSection  = true,
+				},
+				{ 	name	= "Focus Dotting",
+					tooltip = "Toggle Automatic dotting of the focus target.",
+					enable	= true,
+					newSection  = true,
+				},
+				{ 	name	= "Auto Boss Dotting",
+					tooltip = "Toggle the Automatic dotting of all feasible boss targets you're currently engaged with.",
+					enable	= true,
+				},
+				{ 	name	= "Mouseover Dotting",
+					tooltip = "Toggle Automatic dotting of the mouseover target.",
+					enable	= true,
+				},
+			},
+			hotkeys = {
+				{	name	= "Toggle Hold Cooldown",
+					tooltip = "Select the keybind for the usage of holding cooldowns.",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "AOE Mode",
+					tooltip = "Select the keybinding you wish to cast AoE Spells with!\n\nThis includes Flamestrike and Blizzard on mouseover location.",
+					enable	= false,
+					hotkeys	= {},
+				},
+				{	name	= "Alter Time",
+					tooltip = "Select the keybind to use Alter Time with.",
+					enable	= false,
+					hotkeys	= {},
+				},
+			},
+		}
+		HYSTERIA_MAGE_DEF = PQI:AddRotation(Defensive)
+		HYSTERIA_MAGE_OFF = PQI:AddRotation(Offensive)
+	elseif GetSpecialization() == 3 then
+		-- Frost: PQInterface Settings
 		local Defensive = {
 			name	= "Defensive Settings",
 			author	= "Mentally",
@@ -1181,6 +1382,10 @@ if select(2, UnitClass("player")) == "MAGE" then
 					tooltip = "Toggle the automatic usage of Icy Veins.",
 					enable	= true,
 				},
+				{ 	name	= "Auto Invocation",
+					tooltip = "Toggle the automatic usage of Invocation.",
+					enable	= true,
+				},
 				{ 	name	= "Auto Mirror Image",
 					tooltip = "Toggle the automatic usage of Mirror Image.",
 					enable	= true,
@@ -1255,6 +1460,7 @@ if select(2, UnitClass("player")) == "MAGE" then
 	PQ_IL			= 30455		-- Ice Lance
 	PQ_FO			= 84714		-- Frozen Orb
 	PQ_CoC			= 120		-- Cone of Cold
+	PQ_Scorch		= 2948		-- Scorch
 	PQ_Pyro			= 11366		-- Pyroblast
 	PQ_IBlast		= 108853	-- Inferno Blast
 	PQ_FBlast		= 2136		-- Fire Blast
@@ -1265,6 +1471,7 @@ if select(2, UnitClass("player")) == "MAGE" then
 	PQ_Explosion	= 1449		-- Arcane Explosion
 	
 	-- Cooldowns
+	PQ_AP			= 12042		-- Arcane Power
 	PQ_IB			= 45438		-- Ice Block
 	PQ_MI			= 55342		-- Mirror Image
 	PQ_IV			= 12472		-- Icy Veins (Unglyphed)
@@ -1292,7 +1499,7 @@ if select(2, UnitClass("player")) == "MAGE" then
 	
 	-- Talents
 	PQ_POM			= 12043		-- Presence of Mind
-	PQ_Scorch		= 2948		-- Scorch
+	PQ_BS			= 108843	-- Blazing Speed
 	PQ_RoF			= 113724	-- Ring of Frost
 	
 	PQ_Temporal		= 115610	-- Temporal Shield
