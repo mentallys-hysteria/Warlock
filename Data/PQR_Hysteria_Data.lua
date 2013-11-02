@@ -6,7 +6,7 @@ Minor = 8
 
 if not PQR_LoadedDataFile then
 	PQR_LoadedDateFile = 1
-	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 09/25/2013|cffffffff")
+	PQR_WriteToChat("|cffBE69FFHysteria Data File - v"..Version.."."..Minor.." - 11/02/2013|cffffffff")
 end
 
 -- Initialize Dot Tracker
@@ -459,13 +459,15 @@ function HysteriaFrame_OnEvent(self,event,...)
 		local vt_tick_every = PQ_Round(3/(1+(UnitSpellHaste("player")/100)),2)
 		
 		-- Fire RNG sucks donkey-cock!
-		if not pyroCritTimer then pyroCritTimer = 0 end
-		if not fireballCritTimer then fireballCritTimer = 0 end
-		if not infernoTimer then infernoTimer = 0 end
-		
-		if GetTime() - pyroCritTimer > 5 and pyroCritDamage > 0 then pyroCritDamage = 0 end
-		if GetTime() - infernoTimer > 10 and InfernoDamage > 0 then InfernoDamage = 0 end
-		if GetTime() - fireballCritTimer > 5 and fireballCritDamage > 0 then fireballCritDamage = 0 end
+		if select(2, UnitClass("player")) == "MAGE" then
+			if not pyroCritTimer then pyroCritTimer = 0 end
+			if not fireballCritTimer then fireballCritTimer = 0 end
+			if not infernoTimer then infernoTimer = 0 end
+			
+			if GetTime() - pyroCritTimer > 5 and pyroCritDamage > 0 then pyroCritDamage = 0 end
+			if GetTime() - infernoTimer > 10 and InfernoDamage > 0 then InfernoDamage = 0 end
+			if GetTime() - fireballCritTimer > 5 and fireballCritDamage > 0 then fireballCritDamage = 0 end
+		end
 		
 		-- Unit Death events
 		if subEvent == "UNIT_DIED" then
