@@ -1,22 +1,22 @@
--- PQR_PQI.lua --
----- V2.1.0 ----
-----[[ Ini ]]------------------------------------------------------------------------------------------------------------------
+-- PQR_PQI.lua
+-- V2.22
+-- ~~| Ini |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 _G['PQI'] = {}
 local PQI = _G['PQI']
-----[[ Lua Ini ]]--------------------------------------------------------------------------------------------------------------
+-- ~~| Lua Upvalues |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 local print, type, select, tostring, tonumber						= print, type, select, tostring, tonumber
 local ipairs, pairs	 														= ipairs, pairs
 local table_remove, table_concat 										= table.remove, table.concat
 local gsub, sub, format, match, lower									= string.gsub, string.sub, string.format, string.match, string.lower
 local floor, ceil, min, max, modf										= math.floor, math.ceil, math.min, math.max, math.modf
-----[[ WoW Ini ]]--------------------------------------------------------------------------------------------------------------
+-- ~~| WoW Upvalues |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 local GetSpellInfo, GetTime  														= GetSpellInfo, GetTime
 local UnitExists, UnitGUID, UnitLevel											= UnitExists, UnitGUID, UnitLevel 
 local IsLeftShiftKeyDown, IsRightShiftKeyDown, IsLeftAltKeyDown		= IsLeftShiftKeyDown, IsRightShiftKeyDown, IsLeftAltKeyDown
 local IsRightAltKeyDown, IsLeftControlKeyDown, IsRightControlKeyDown = IsRightAltKeyDown, IsLeftControlKeyDown, IsRightControlKeyDown
 local GetSpecialization, GetSpecializationInfo								= GetSpecialization, GetSpecializationInfo
 local GetCVar, SetCVar																= GetCVar, SetCVar
-----[[ Constants ]]------------------------------------------------------------------------------------------------------------
+-- ~~| Constants |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 RegisterCVar('PQI_AddRotation','')	
 local DEBUG = false
 local CVAR_RVBUFFER = 10
@@ -154,15 +154,17 @@ local BOSS_UNITS = {
 	46647,		-- Level 85 Training Dummy
 	67127			-- Level 90 Training Dummy
 }
-local HK_KEYS = {
-  ls = function() return IsLeftShiftKeyDown() end,
-  rs = function() return IsRightShiftKeyDown() end,
-  la = function() return IsLeftAltKeyDown() end,
-  ra = function() return IsRightAltKeyDown() end,
-  lc = function() return IsLeftControlKeyDown() end,
-  rc = function() return IsRightControlKeyDown() end, 
+local KEY_VALUES = {
+  ls = 1,
+  lc = 2,
+  la = 4,
+  rs = 8,
+  rc = 16, 
+  ra = 32, 
 }
-----[[ Local functions ]]----------------------------------------------------------------------------------------------------------------
+
+
+-- ~~| Private functions |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 do	-- Serializer ---------------------------	
 	local lua_keywords = { 
 		["and"] = true,    ["break"] = true,  ["do"] = true,
@@ -261,7 +263,7 @@ do	-- Serializer ---------------------------
 	end
 	PQI.implode = impl	
 end 
------ Variable Printer ---------------------
+-- ~~ Variable Printer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 local function valueCompare(v1,v2)
 	if type(v1) ~= 'table' or type(v2) ~='table' then
 		if v1 == v2 then return true else return false end
@@ -297,7 +299,7 @@ local function printVariable(var, value, PQI_VarDebug)
 		--PQI:Print(format('%s |cffffaa00= %s%s',var,value or keyword,value or 'nil'))	
 	end
 end
---------------------------------------------
+-- ~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 local function updateRotationVariables(serialData)				
 	local rotation = PQI:Deserialize(serialData)		 
 	local PQI_VarDebug = GetCVar('PQI_VarDebug')		
@@ -325,10 +327,10 @@ do -- OnUpdate -----------------------------
 		lastUpdate = lastUpdate + elapsed;
 		while (lastUpdate > throttle) do
 ---------------- update ------------------------------------------------------
-			if not GetCVar('PQREventsEnabled') then return end
+			if not GetCVar('PQInterface_Update') then return end
 			--Listen for PQInterface Config Updates
 			for buffer = 1, CVAR_RVBUFFER do		 		
-				if GetCVar('PQI_RVUpdate'..buffer) ~= '' then
+				if GetCVar('PQI_RVUpdate'..buffer) and GetCVar('PQI_RVUpdate'..buffer) ~= '' then
 					 updateRotationVariables(GetCVar('PQI_RVUpdate'..buffer))
 					 SetCVar('PQI_RVUpdate'..buffer,'')
 				end			
@@ -338,32 +340,19 @@ do -- OnUpdate -----------------------------
 		end
 	end)
 end 
---------------------------------------------
+-- ~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 local function rotationAddError(config,section,name,helper)
 	if not name then print(format("|cffff0000<PQInterface Error> |cff00a8ffConfig:|cffffff00%s|cffff0000 %s",config,section))
 	else
 		print(format("|cffff0000<PQInterface Error> |cff00a8ffConfig:|cffffff00%s|cff00a8ff %s:|cffffff00%s|cffff0000 %s",config,section,name,helper))
 	end
 end
-----[[ PQR DEV API ]]-----------------------------------------------------------------------------------------------------------
-local function printVariables(rotation)		
-	PQI.P('-------------------------------------------------------------------')			
-	for i=1,#rotation.abilities do
-		PQI.P(rotation.abilities[i].id..'_enable: ',rotation.abilities[i].enable	)
-		PQI.P(rotation.abilities[i].id..'_boss: ',rotation.abilities[i].boss )
-		PQI.P(rotation.abilities[i].id..'_value: ',rotation.abilities[i].value	)				
-	end
-	for i=1,#rotation.hotkeys do
-		PQI.P(rotation.hotkeys[i].id..'_enable: ',rotation.hotkeys[i].enable)
-		local keystring = '{ '
-		for k = 1,#rotation.hotkeys[i].keys	do
-			if k ~= 1 then keystring = keystring..', ' end
-			keystring = keystring..rotation.hotkeys[i].keys[k]
-		end
-		keystring = keystring..' }'		
-		PQI.P(rotation.hotkeys[i].name..'_key = ',keystring)			
-	end	
-end
+local function tableLength(t)
+	local count = 0
+	for _ in pairs(t) do count = count + 1 end
+  	return count
+end		
+-- ~~| PQR DEV API |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 local function Caller(level)
 	local match, _, file, line, func
 	for trace in debugstack(level,1, 0):gmatch("(.-)\n") do
@@ -396,9 +385,9 @@ function PQI.P(...)
 	end
 	print(format(caller.."|r %s",txt))
 end
-----[[ PQI API ]]---------------------------------------------------------------------------------------------------------------
+-- ~~| PQI API |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function PQI:Print(s,...)
-	-- silly weakauras doing an unsecure hook to chatframe1, use print!
+	-- weakauras doing an unsecure hook to chatframe1, use print!
 	if not s then return end
 	print(format("|cff00ffff<|cff00aaff%s|cff00ffff>|r %s",'PQInterface',s))
 	return self:Print(...)
@@ -418,12 +407,21 @@ function PQI:IsBoss(check)
 	end
 	return false
 end 
-function PQI:IsHotkeys(hotkeyTable)
-if not hotkeyTable then return false end	
-	for h=1, #hotkeyTable do
-		if not HK_KEYS[hotkeyTable[h]]() then return false end
-	end
-	return true
+function PQI:IsHotkeys(hotKeyTable)
+if not hotKeyTable then return false end
+	local keyTotal 		= 0
+	local hotKeyTotal 	= 0
+	if IsLeftShiftKeyDown()		then keyTotal = keyTotal + 1 	end
+	if IsLeftControlKeyDown()	then keyTotal = keyTotal + 2 	end
+	if IsLeftAltKeyDown() 		then keyTotal = keyTotal + 4 	end
+	if IsRightShiftKeyDown()	then keyTotal = keyTotal + 8 	end
+	if IsRightControlKeyDown()	then keyTotal = keyTotal + 16 end
+	if IsRightAltKeyDown() 		then keyTotal = keyTotal + 32 end
+		
+	for h=1, #hotKeyTable do hotKeyTotal = hotKeyTotal + KEY_VALUES[hotKeyTable[h]] end	
+	
+	if hotKeyTotal == 0 then return true end
+	return keyTotal == hotKeyTotal	
 end 
 function PQI:IsSpec(spec)
 	local currentSpec = GetSpecialization()	
@@ -461,8 +459,9 @@ function PQI:AddRotation(rotation)
 			and ability.widget.type ~= 'numbox'	then rotationAddError(rotation.name,'Ability',ability.name,'Widget type not valid. ( type = "txtbox"|"select"|"numbox" )') return end
 			if ability.widget.type == 'select' then
 				if not ability.widget.values or type(ability.widget.values) ~='table'
-															then rotationAddError(rotation.name,'Ability',ability.name,'Requies a Selection Table ie. ( values = {"option1","option2","option3"} )') return end		
-				if #ability.widget.values < 2 	then rotationAddError(rotation.name,'Ability',ability.name,'Selection Table is required to contain atleast 2 options to be valid') return end
+															then rotationAddError(rotation.name,'Ability',ability.name,'Requies a Selection Table ie. ( values = {"option1","option2","option3"} )') return end
+				
+				if tableLength(ability.widget.values) < 2	then rotationAddError(rotation.name,'Ability',ability.name,'Selection Table is required to contain atleast 2 options to be valid') return end
 	 		end 		
  		end
   	end 		
@@ -475,25 +474,25 @@ function PQI:AddRotation(rotation)
 		if type(hotkey.hotkeys) ~='table'		then rotationAddError(rotation.name,'Hotkey',hotkey.name,'hotkeys is required to be a table ie.( hotkeys = {"ls"} )') return end
 		for i=1, #hotkey.hotkeys do
 			hotkey.hotkeys[i] = string.lower(hotkey.hotkeys[i])
-			if not HK_KEYS[hotkey.hotkeys[i]] 		then rotationAddError(rotation.name,'Hotkey',hotkey.name,'Table entry "'..hotkey.hotkeys[i]..'" is invalid, valid options: ls, rs, la, ra, lc, rc') return end
+			if not KEY_VALUES[hotkey.hotkeys[i]] 		then rotationAddError(rotation.name,'Hotkey',hotkey.name,'Table entry "'..hotkey.hotkeys[i]..'" is invalid, valid options: ls, rs, la, ra, lc, rc') return end
 		end		
 	end	
 	--------------------------------------------------------
 	
-	local name = gsub(rotation.name,'[%s%[%]%(%)%.%+%-%?%$%^%*<>,]','')
-	local author = gsub(rotation.author,'[%s%[%]%(%)%.%+%-%?%$%^%*<>,]','')		
+	local name = gsub((gsub(rotation.name,'[^%w]','')),'c%x%x%x%x%x%x%x%x','')
+	local author = gsub((gsub(rotation.author,'[^%w]','')),'c%x%x%x%x%x%x%x%x','')	
 	rotation.id = format('PQI_%s%s',author,name)
 	--- write variables with default settings incase addon isnt found and give each abilty and hotkey there own unique id
 	for a=1,rotation.abilityCount do	
 		local ability = rotation.abilities[a]
-			ability.id = (format('%s_%s',rotation.id,gsub(ability.name,'[%s%[%]%(%)%.%+%-%?%$%^%*<>,]','')))					
+			ability.id = (format('%s_%s',rotation.id,gsub((gsub(ability.name,'[^%w]','')),'c%x%x%x%x%x%x%x%x','')	))			
 			_G[ability.name..'_enable'] = ability.enable		
 			_G[ability.name..'_boss'] = ability.boss
 			_G[ability.name..'_value'] = ability.value			
 		end
 	for h=1,rotation.hotkeyCount do
 		local hotkey = rotation.hotkeys[h]
-		hotkey.id = (format('%s_%s',rotation.id,gsub(hotkey.name,'[%s%[%]%(%)%.%+%-%?%$%^%*<>,]','')))		
+		hotkey.id = (format('%s_%s',rotation.id,gsub((gsub(hotkey.name,'[^%w]','')),'c%x%x%x%x%x%x%x%x','')))
 		_G[hotkey.name..'_enable'] = hotkey.enable			
 		_G[hotkey.name..'_key'] = hotkey.keys 			
 	end	
@@ -501,4 +500,18 @@ function PQI:AddRotation(rotation)
 	SetCVar('PQI_AddRotation',PQI:Serialize(rotation))
 	return true	
 end
+
+
+
+
+
+
+
+
+
+
+
+
 ----------------------------------------------------------------------------------------------------------------------------------
+----[[ External Loads ]]----------------------------------------------------------------------------------------------------------
+if PQR_LoadLua("PQR_Diesal.lua") then PQI:Print("'PQR_Diesal.lua' Loaded") end
